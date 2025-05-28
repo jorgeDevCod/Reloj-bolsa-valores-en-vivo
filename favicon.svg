@@ -1,0 +1,41 @@
+
+He decodificado el SVG de base64 y lo he convertido en un archivo SVG limpio que puedes usar como favicon:
+
+
+Favicon SVG
+Imagen 
+Este SVG contiene un diseño de favicon con:
+
+Un círculo con gradiente púrpura-azul de fondo
+Formas geométricas blancas que parecen representar una gráfica o estadística
+Dimensiones de 32x32 píxeles, ideal para favicons
+Para usarlo como favicon en tu sitio web, puedes:
+
+Guardar el archivo: Copia el contenido SVG y guárdalo como favicon.svg
+Agregar al HTML: Incluye esta línea en el <head> de tu HTML:
+html
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+Compatibilidad adicional: Para mejor soporte en navegadores antiguos, también podrías convertir el SVG a PNG o ICO y agregar:
+html
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+El diseño tiene un estilo moderno y profesional que funcionará bien como favicon.
+
+
+
+
+
+
+
+
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="16" cy="16" r="16" fill="url(#gradient0_linear_1_1)"/>
+<path d="M16 6V16H19L16 6Z" fill="white"/>
+<path d="M16 16H26A10 10 0 0 0 16 6V16Z" fill="white" fill-opacity="0.8"/>
+<defs>
+<linearGradient id="gradient0_linear_1_1" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+<stop stop-color="#667eea"/>
+<stop offset="1" stop-color="#764ba2"/>
+</linearGradient>
+</defs>
+</svg>

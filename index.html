@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reloj Mundial - Mercados Financieros</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body class="gradient-bg min-h-screen">
+    <!-- Partículas de fondo -->
+    <div class="particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s; animation-duration: 6s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s; animation-duration: 8s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s; animation-duration: 7s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 1s; animation-duration: 9s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 3s; animation-duration: 6s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 2s; animation-duration: 8s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 5s; animation-duration: 7s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 1s; animation-duration: 9s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 4s; animation-duration: 6s;"></div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 relative z-10">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="header-title text-4xl md:text-6xl font-bold mb-4">
+                <i class="fas fa-globe-americas mr-4 text-white"></i>
+                Mercados Mundiales
+            </h1>
+            <p class="text-xl text-blue-100 font-medium">Horarios en tiempo real de las principales bolsas de valores</p>
+            <div class="mt-4 w-32 h-1 bg-gradient-to-r from-purple-400 to-pink-400 mx-auto rounded-full"></div>
+        </div>
+
+        <!-- Buscador de países -->
+        <div class="search-container rounded-2xl p-6 mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <input type="text" id="country-search" placeholder="Buscar país o ciudad (ej: Tokyo, London, New York...)" class="search-input w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-800 font-medium">
+                </div>
+                <button id="add-country-btn" class="add-btn px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300">
+                    <i class="fas fa-plus mr-2"></i>Agregar País
+                </button>
+            </div>
+            <div id="search-suggestions" class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+        </div>
+
+        <!-- Perú - Primera fila destacada -->
+        <div class="mb-8">
+            <div class="clock-card peru-card rounded-2xl p-6 text-white shadow-2xl">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-2">
+                            <i class="fas fa-flag mr-2"></i>PERÚ - LIMA
+                        </h2>
+                        <p class="text-blue-100">Bolsa de Valores de Lima (BVL)</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="digital-font text-4xl md:text-5xl font-bold" id="peru-time">
+                            --:--:--
+                        </div>
+                        <div class="text-lg" id="peru-date">
+                            -- de ---- de ----
+                        </div>
+                        <div class="mt-2">
+                            <span class="market-status px-3 py-1 rounded-full text-sm font-semibold" id="peru-status">
+                                Calculando...
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mercados principales -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="main-markets">
+            <!-- Los mercados se cargarán aquí -->
+        </div>
+
+        <!-- Mercados agregados por el usuario -->
+        <div id="user-markets" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Los mercados del usuario se cargarán aquí -->
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
