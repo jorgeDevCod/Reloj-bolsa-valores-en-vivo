@@ -110,9 +110,8 @@ body {
   background: linear-gradient(
     135deg,
     #667eea 0%,
-    #764ba2 25%,
-    #753ebc 50%,
-    #7130a2cd 75%,
+    #764ba2 40%,
+    #602091cd 75%,
     #4facfe 100%
   );
   background-size: 400% 400%;
@@ -179,9 +178,9 @@ body {
 }
 
 .search-input:focus {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: #667eea;
-  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  background: rgba(112, 157, 221, 0.95);
+  border-color: #682bbd;
+  box-shadow: 0 0 20px rgba(76, 94, 171, 0.395);
 }
 
 /* Botón de agregar mejorado */
