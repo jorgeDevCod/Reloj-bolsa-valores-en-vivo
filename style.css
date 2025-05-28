@@ -131,7 +131,7 @@ body {
   }
 }
 
-/* Mejoras en los botones de estado */
+
 .status-open {
   background: linear-gradient(135deg, #00d4aa, #1e8ed8);
   box-shadow: 0 4px 15px rgba(0, 212, 170, 0.4);
@@ -171,16 +171,16 @@ body {
 
 /* Mejoras en el input de búsqueda */
 .search-input {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(255, 253, 255);
   backdrop-filter: blur(10px);
   border: 2px solid transparent;
   transition: all 0.3s ease;
 }
 
 .search-input:focus {
-  background: rgba(112, 157, 221, 0.95);
+  background: rgba(248, 248, 248, 0.888);
   border-color: #682bbd;
-  box-shadow: 0 0 20px rgba(76, 94, 171, 0.395);
+  box-shadow: 0 0 20px rgba(93, 115, 213, 0.395);
 }
 
 /* Botón de agregar mejorado */
