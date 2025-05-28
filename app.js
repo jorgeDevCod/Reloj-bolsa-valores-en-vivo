@@ -55,23 +55,82 @@ const mainMarkets = [
     }
 ];
 
-// Sugerencias de países
-const countrySuggestions = [
-    { name: 'Toronto', country: 'Canadá', timezone: 'America/Toronto', market: 'TSX', flag: '🇨🇦' },
-    { name: 'São Paulo', country: 'Brasil', timezone: 'America/Sao_Paulo', market: 'B3', flag: '🇧🇷' },
-    { name: 'Mumbai', country: 'India', timezone: 'Asia/Kolkata', market: 'BSE', flag: '🇮🇳' },
-    { name: 'Seúl', country: 'Corea del Sur', timezone: 'Asia/Seoul', market: 'KRX', flag: '🇰🇷' },
-    { name: 'Shanghái', country: 'China', timezone: 'Asia/Shanghai', market: 'SSE', flag: '🇨🇳' },
-    { name: 'Singapur', country: 'Singapur', timezone: 'Asia/Singapore', market: 'SGX', flag: '🇸🇬' },
-    { name: 'Zurich', country: 'Suiza', timezone: 'Europe/Zurich', market: 'SIX', flag: '🇨🇭' },
-    { name: 'París', country: 'Francia', timezone: 'Europe/Paris', market: 'Euronext', flag: '🇫🇷' },
-    { name: 'Milán', country: 'Italia', timezone: 'Europe/Rome', market: 'Borsa Italiana', flag: '🇮🇹' },
-    { name: 'Madrid', country: 'España', timezone: 'Europe/Madrid', market: 'BME', flag: '🇪🇸' },
-    { name: 'Ámsterdam', country: 'Países Bajos', timezone: 'Europe/Amsterdam', market: 'Euronext', flag: '🇳🇱' },
-    { name: 'Estocolmo', country: 'Suecia', timezone: 'Europe/Stockholm', market: 'Nasdaq Stockholm', flag: '🇸🇪' }
-];
-
+// Variables globales
+let worldCities = [];
 let userMarkets = [];
+let searchResults = [];
+let isLoading = true;
+
+// Función para escapar HTML y prevenir XSS
+function escapeHtml( text ) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace( /[&<>"']/g, function ( m ) { return map[ m ]; } );
+}
+
+// Cargar datos del JSON
+async function loadCitiesData() {
+    try {
+        showLoadingState( true );
+        const response = await fetch( 'world-cities.json' );
+        if ( !response.ok ) {
+            throw new Error( `HTTP error! status: ${response.status}` );
+        }
+        const data = await response.json();
+        worldCities = data.cities;
+        showLoadingState( false );
+        showDefaultSuggestions();
+        console.log( `Cargadas ${worldCities.length} ciudades desde el JSON` );
+    } catch ( error ) {
+        console.error( 'Error al cargar los datos de ciudades:', error );
+        showLoadingState( false, 'Error al cargar la base de datos de ciudades. Usando datos básicos.' );
+        // Fallback a datos básicos si falla la carga
+        worldCities = [
+            { name: 'Toronto', country: 'Canadá', timezone: 'America/Toronto', market: 'TSX', flag: '🇨🇦', openHour: 9.5, closeHour: 16 },
+            { name: 'São Paulo', country: 'Brasil', timezone: 'America/Sao_Paulo', market: 'B3', flag: '🇧🇷', openHour: 10, closeHour: 17 },
+            { name: 'Mumbai', country: 'India', timezone: 'Asia/Kolkata', market: 'BSE', flag: '🇮🇳', openHour: 9.25, closeHour: 15.5 },
+            { name: 'Seúl', country: 'Corea del Sur', timezone: 'Asia/Seoul', market: 'KRX', flag: '🇰🇷', openHour: 9, closeHour: 15.5 }
+        ];
+        showDefaultSuggestions();
+    }
+}
+
+// Mostrar estado de carga
+function showLoadingState( loading, errorMessage = null ) {
+    const suggestionsContainer = document.getElementById( 'search-suggestions' );
+    const searchInput = document.getElementById( 'country-search' );
+    const addButton = document.getElementById( 'add-country-btn' );
+
+    if ( loading ) {
+        suggestionsContainer.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-spinner fa-spin text-white text-2xl mb-2"></i>
+                <p class="text-white">Cargando base de datos de ciudades...</p>
+            </div>
+        `;
+        searchInput.disabled = true;
+        addButton.disabled = true;
+        isLoading = true;
+    } else {
+        searchInput.disabled = false;
+        addButton.disabled = false;
+        isLoading = false;
+
+        if ( errorMessage ) {
+            suggestionsContainer.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-exclamation-triangle text-yellow-400 text-xl mb-2"></i>
+                    <p class="text-yellow-200 text-sm">${errorMessage}</p>
+                </div>
+            `;
+        }
+    }
+}
 
 // Función para obtener el estado del mercado
 function getMarketStatus( timezone, openHour = 9, closeHour = 17 ) {
@@ -109,7 +168,7 @@ function createMarketCard( market, isUser = false ) {
                     <p class="text-blue-100 text-sm">${market.country}</p>
                     <p class="text-blue-200 text-xs">${market.market || 'Mercado Principal'}</p>
                 </div>
-                ${isUser ? `<button onclick="removeUserMarket('${market.timezone}')" class="text-red-300 hover:text-red-100 transition-colors">
+                ${isUser ? `<button onclick="removeUserMarket('${market.timezone}')" class="text-red-300 hover:text-red-100 transition-colors" title="Eliminar">
                     <i class="fas fa-times text-lg"></i>
                 </button>` : ''}
             </div>
@@ -130,135 +189,337 @@ function createMarketCard( market, isUser = false ) {
     `;
 }
 
-// Función para actualizar todos los relojes
-function updateClocks() {
-    const now = new Date();
+// Función para buscar ciudades/países (mejorada)
+function searchCities( searchTerm ) {
+    const term = searchTerm.toLowerCase().trim();
+    if ( !term || worldCities.length === 0 ) return [];
 
+    // Búsqueda inteligente que considera múltiples campos
+    const results = worldCities.filter( city => {
+        const nameMatch = city.name.toLowerCase().includes( term );
+        const countryMatch = city.country.toLowerCase().includes( term );
+        const marketMatch = city.market.toLowerCase().includes( term );
+        const regionMatch = city.region && city.region.toLowerCase().includes( term );
+
+        return nameMatch || countryMatch || marketMatch || regionMatch;
+    } );
+
+    // Ordenar resultados por relevancia
+    return results.sort( ( a, b ) => {
+        const aNameMatch = a.name.toLowerCase().startsWith( term );
+        const bNameMatch = b.name.toLowerCase().startsWith( term );
+        const aCountryMatch = a.country.toLowerCase().startsWith( term );
+        const bCountryMatch = b.country.toLowerCase().startsWith( term );
+
+        // Priorizar coincidencias que empiecen con el término
+        if ( aNameMatch && !bNameMatch ) return -1;
+        if ( !aNameMatch && bNameMatch ) return 1;
+        if ( aCountryMatch && !bCountryMatch ) return -1;
+        if ( !aCountryMatch && bCountryMatch ) return 1;
+
+        return a.name.localeCompare( b.name );
+    } ).slice( 0, 12 ); // Mostrar hasta 12 resultados
+}
+
+// Función para mostrar resultados de búsqueda
+function showSearchResults( results ) {
+    const suggestionsContainer = document.getElementById( 'search-suggestions' );
+
+    if ( results.length === 0 ) {
+        suggestionsContainer.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-search text-white text-xl mb-2"></i>
+                <p class="text-white">No se encontraron resultados para tu búsqueda.</p>
+                <p class="text-blue-200 text-sm mt-1">Intenta con nombres como: Londres, Tokyo, Mumbai, etc.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const suggestions = results.map( city =>
+        `<button onclick="addCityFromResults('${city.timezone}', '${escapeHtml( city.name )}', '${escapeHtml( city.country )}', '${escapeHtml( city.market )}', '${city.flag}', ${city.openHour}, ${city.closeHour})" 
+                 class="suggestion-btn px-3 py-2 rounded-lg text-white text-sm font-medium transition-all duration-300 hover:scale-105" 
+                 title="Agregar ${city.name}, ${city.country}">
+            ${city.flag} ${city.name}
+            <span class="text-xs opacity-75 block">${city.country}</span>
+        </button>`
+    ).join( '' );
+
+    suggestionsContainer.innerHTML = `
+        <div class="mb-2">
+            <p class="text-blue-200 text-sm">Resultados encontrados (${results.length}):</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            ${suggestions}
+        </div>
+    `;
+}
+
+// Función para mostrar sugerencias por defecto
+function showDefaultSuggestions() {
+    const defaultSuggestions = worldCities.slice( 0, 8 ); // Mostrar las primeras 8 ciudades
+    const suggestionsContainer = document.getElementById( 'search-suggestions' );
+
+    const suggestions = defaultSuggestions.map( city =>
+        `<button onclick="addCityFromResults('${city.timezone}', '${escapeHtml( city.name )}', '${escapeHtml( city.country )}', '${escapeHtml( city.market )}', '${city.flag}', ${city.openHour}, ${city.closeHour})" 
+                 class="suggestion-btn px-3 py-2 rounded-lg text-white text-sm font-medium transition-all duration-300 hover:scale-105" 
+                 title="Agregar ${city.name}, ${city.country}">
+            ${city.flag} ${city.name}
+            <span class="text-xs opacity-75 block">${city.country}</span>
+        </button>`
+    ).join( '' );
+
+    suggestionsContainer.innerHTML = `
+        <div class="mb-2">
+            <p class="text-blue-200 text-sm">Ciudades populares:</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            ${suggestions}
+        </div>
+    `;
+}
+
+// Función para agregar ciudad desde los resultados de búsqueda
+function addCityFromResults( timezone, name, country, market, flag, openHour, closeHour ) {
+    // Verificar si ya existe
+    if ( userMarkets.some( market => market.timezone === timezone ) ) {
+        alert( 'Este mercado ya está agregado' );
+        return;
+    }
+
+    const newMarket = {
+        name: name,
+        country: country,
+        timezone: timezone,
+        market: market,
+        flag: flag,
+        openHour: openHour,
+        closeHour: closeHour
+    };
+
+    userMarkets.push( newMarket );
+    renderUserMarkets();
+
+    // Limpiar búsqueda
+    document.getElementById( 'country-search' ).value = '';
+    showDefaultSuggestions();
+}
+
+// Función para eliminar mercado del usuario
+function removeUserMarket( timezone ) {
+    userMarkets = userMarkets.filter( market => market.timezone !== timezone );
+    renderUserMarkets();
+}
+
+// Función para renderizar mercados del usuario
+function renderUserMarkets() {
+    const userMarketsContainer = document.getElementById( 'user-markets' );
+
+    if ( userMarkets.length === 0 ) {
+        userMarketsContainer.innerHTML = '';
+        return;
+    }
+
+    const marketsHTML = userMarkets.map( market => createMarketCard( market, true ) ).join( '' );
+    userMarketsContainer.innerHTML = marketsHTML;
+}
+
+// Función para actualizar la hora en todas las tarjetas
+function updateAllTimes() {
     // Actualizar Perú
-    const peruTime = now.toLocaleString( "es-PE", {
-        timeZone: "America/Lima",
+    updatePeruTime();
+
+    // Actualizar mercados principales
+    document.querySelectorAll( '#main-markets .market-time' ).forEach( timeElement => {
+        const timezone = timeElement.getAttribute( 'data-timezone' );
+        updateTimeForTimezone( timeElement, timezone );
+    } );
+
+    // Actualizar fechas de mercados principales
+    document.querySelectorAll( '#main-markets .market-date' ).forEach( dateElement => {
+        const timezone = dateElement.getAttribute( 'data-timezone' );
+        updateDateForTimezone( dateElement, timezone );
+    } );
+
+    // Actualizar mercados de usuario
+    document.querySelectorAll( '#user-markets .market-time' ).forEach( timeElement => {
+        const timezone = timeElement.getAttribute( 'data-timezone' );
+        updateTimeForTimezone( timeElement, timezone );
+    } );
+
+    document.querySelectorAll( '#user-markets .market-date' ).forEach( dateElement => {
+        const timezone = dateElement.getAttribute( 'data-timezone' );
+        updateDateForTimezone( dateElement, timezone );
+    } );
+
+    // Actualizar estados de mercado
+    updateMarketStatuses();
+}
+
+// Función para actualizar la hora de Perú
+function updatePeruTime() {
+    const peruTimeElement = document.getElementById( 'peru-time' );
+    const peruDateElement = document.getElementById( 'peru-date' );
+    const peruStatusElement = document.getElementById( 'peru-status' );
+
+    if ( peruTimeElement && peruDateElement ) {
+        const now = new Date();
+        const peruTime = new Date( now.toLocaleString( "en-US", { timeZone: "America/Lima" } ) );
+
+        // Formatear tiempo
+        const timeString = peruTime.toLocaleTimeString( 'es-PE', {
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        } );
+
+        // Formatear fecha
+        const dateString = peruTime.toLocaleDateString( 'es-PE', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        } );
+
+        peruTimeElement.textContent = timeString;
+        peruDateElement.textContent = dateString;
+
+        // Actualizar estado del mercado peruano (BVL: 9:00 - 15:30)
+        const marketStatus = getMarketStatus( 'America/Lima', 9, 15.5 );
+        if ( peruStatusElement ) {
+            peruStatusElement.textContent = marketStatus.status;
+            peruStatusElement.className = `market-status px-3 py-1 rounded-full text-sm font-semibold ${marketStatus.class}`;
+        }
+    }
+}
+
+// Función para actualizar tiempo por zona horaria
+function updateTimeForTimezone( element, timezone ) {
+    const now = new Date();
+    const localTime = new Date( now.toLocaleString( "en-US", { timeZone: timezone } ) );
+
+    const timeString = localTime.toLocaleTimeString( 'es-ES', {
         hour12: false,
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit'
     } );
 
-    const peruDate = now.toLocaleDateString( "es-PE", {
-        timeZone: "America/Lima",
-        weekday: 'long',
+    element.textContent = timeString;
+}
+
+// Función para actualizar fecha por zona horaria
+function updateDateForTimezone( element, timezone ) {
+    const now = new Date();
+    const localTime = new Date( now.toLocaleString( "en-US", { timeZone: timezone } ) );
+
+    const dateString = localTime.toLocaleDateString( 'es-ES', {
+        weekday: 'short',
         year: 'numeric',
-        month: 'long',
+        month: 'short',
         day: 'numeric'
     } );
 
-    document.getElementById( 'peru-time' ).textContent = peruTime;
-    document.getElementById( 'peru-date' ).textContent = peruDate;
+    element.textContent = dateString;
+}
 
-    // Estado del mercado peruano (BVL: 9:00 - 15:30)
-    const peruMarketStatus = getMarketStatus( 'America/Lima', 9, 15.5 );
-    const peruStatusElement = document.getElementById( 'peru-status' );
-    peruStatusElement.textContent = peruMarketStatus.status;
-    peruStatusElement.className = `market-status px-3 py-1 rounded-full text-sm font-semibold ${peruMarketStatus.class}`;
+// Función para actualizar estados de mercados
+function updateMarketStatuses() {
+    // Actualizar mercados principales
+    mainMarkets.forEach( ( market, index ) => {
+        const marketCard = document.querySelector( `#main-markets .clock-card:nth-child(${index + 1})` );
+        if ( marketCard ) {
+            const statusElement = marketCard.querySelector( '.market-status' );
+            const marketStatus = getMarketStatus( market.timezone, market.openHour, market.closeHour );
 
-    // Actualizar otros mercados
-    document.querySelectorAll( '.market-time' ).forEach( element => {
-        const timezone = element.dataset.timezone;
-        const time = now.toLocaleString( "es-PE", {
-            timeZone: timezone,
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        } );
-        element.textContent = time;
+            if ( statusElement ) {
+                statusElement.textContent = marketStatus.status;
+                statusElement.className = `market-status px-3 py-1 rounded-full text-xs font-semibold ${marketStatus.class}`;
+            }
+
+            // Actualizar clase del card
+            marketCard.className = `clock-card rounded-2xl p-6 text-white shadow-xl ${marketStatus.status === 'Abierto' ? 'market-open' : marketStatus.status === 'Cerrado' ? 'market-closed' : 'market-pre'}`;
+        }
     } );
 
-    document.querySelectorAll( '.market-date' ).forEach( element => {
-        const timezone = element.dataset.timezone;
-        const date = now.toLocaleDateString( "es-PE", {
-            timeZone: timezone,
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric'
-        } );
-        element.textContent = date;
+    // Actualizar mercados de usuario
+    userMarkets.forEach( ( market, index ) => {
+        const marketCard = document.querySelector( `#user-markets .clock-card:nth-child(${index + 1})` );
+        if ( marketCard ) {
+            const statusElement = marketCard.querySelector( '.market-status' );
+            const marketStatus = getMarketStatus( market.timezone, market.openHour, market.closeHour );
+
+            if ( statusElement ) {
+                statusElement.textContent = marketStatus.status;
+                statusElement.className = `market-status px-3 py-1 rounded-full text-xs font-semibold ${marketStatus.class}`;
+            }
+
+            // Actualizar clase del card
+            marketCard.className = `clock-card rounded-2xl p-6 text-white shadow-xl ${marketStatus.status === 'Abierto' ? 'market-open' : marketStatus.status === 'Cerrado' ? 'market-closed' : 'market-pre'}`;
+        }
     } );
-}
-
-// Función para mostrar sugerencias
-function showSuggestions() {
-    const suggestionsContainer = document.getElementById( 'search-suggestions' );
-    const suggestions = countrySuggestions.slice( 0, 8 ).map( country =>
-        `<button onclick="addSuggestedCountry('${country.timezone}', '${country.name}', '${country.country}', '${country.market}', '${country.flag}')" 
-                 class="suggestion-btn px-3 py-2 rounded-lg text-white text-sm font-medium transition-all duration-300">
-            ${country.flag} ${country.name}
-        </button>`
-    ).join( '' );
-    suggestionsContainer.innerHTML = suggestions;
-}
-
-// Función para agregar país sugerido
-function addSuggestedCountry( timezone, name, country, market, flag ) {
-    const newMarket = { timezone, name, country, market, flag };
-    if ( !userMarkets.find( m => m.timezone === timezone ) ) {
-        userMarkets.push( newMarket );
-        renderUserMarkets();
-    }
-}
-
-// Función para agregar país desde el buscador
-function addCountryFromSearch() {
-    const searchInput = document.getElementById( 'country-search' );
-    const searchTerm = searchInput.value.toLowerCase().trim();
-
-    if ( !searchTerm ) return;
-
-    const found = countrySuggestions.find( country =>
-        country.name.toLowerCase().includes( searchTerm ) ||
-        country.country.toLowerCase().includes( searchTerm )
-    );
-
-    if ( found && !userMarkets.find( m => m.timezone === found.timezone ) ) {
-        userMarkets.push( found );
-        renderUserMarkets();
-        searchInput.value = '';
-    } else if ( !found ) {
-        alert( 'País no encontrado. Intenta con: Tokyo, London, New York, Mumbai, etc.' );
-    } else {
-        alert( 'Este país ya está agregado.' );
-    }
-}
-
-// Función para eliminar mercado de usuario
-function removeUserMarket( timezone ) {
-    userMarkets = userMarkets.filter( market => market.timezone !== timezone );
-    renderUserMarkets();
-}
-
-// Función para renderizar mercados de usuario
-function renderUserMarkets() {
-    const container = document.getElementById( 'user-markets' );
-    container.innerHTML = userMarkets.map( market => createMarketCard( market, true ) ).join( '' );
 }
 
 // Función para renderizar mercados principales
 function renderMainMarkets() {
-    const container = document.getElementById( 'main-markets' );
-    container.innerHTML = mainMarkets.map( market => createMarketCard( market ) ).join( '' );
+    const mainMarketsContainer = document.getElementById( 'main-markets' );
+    const marketsHTML = mainMarkets.map( market => createMarketCard( market, false ) ).join( '' );
+    mainMarketsContainer.innerHTML = marketsHTML;
 }
 
-// Event listeners
-document.getElementById( 'add-country-btn' ).addEventListener( 'click', addCountryFromSearch );
-document.getElementById( 'country-search' ).addEventListener( 'keypress', function ( e ) {
-    if ( e.key === 'Enter' ) {
-        addCountryFromSearch();
-    }
+// Event Listeners
+document.addEventListener( 'DOMContentLoaded', function () {
+    // Cargar datos y renderizar
+    loadCitiesData();
+    renderMainMarkets();
+
+    // Event listener para búsqueda
+    const searchInput = document.getElementById( 'country-search' );
+    const addButton = document.getElementById( 'add-country-btn' );
+
+    searchInput.addEventListener( 'input', function () {
+        if ( isLoading ) return;
+
+        const searchTerm = this.value.trim();
+        if ( searchTerm.length === 0 ) {
+            showDefaultSuggestions();
+            return;
+        }
+
+        if ( searchTerm.length >= 2 ) {
+            const results = searchCities( searchTerm );
+            showSearchResults( results );
+        }
+    } );
+
+    // Event listener para el botón agregar
+    addButton.addEventListener( 'click', function () {
+        const searchTerm = searchInput.value.trim();
+        if ( !searchTerm ) {
+            alert( 'Por favor, escribe el nombre de una ciudad o país' );
+            return;
+        }
+
+        const results = searchCities( searchTerm );
+        if ( results.length === 1 ) {
+            const city = results[ 0 ];
+            addCityFromResults( city.timezone, city.name, city.country, city.market, city.flag, city.openHour, city.closeHour );
+        } else if ( results.length > 1 ) {
+            alert( 'Se encontraron múltiples resultados. Por favor, selecciona uno de la lista.' );
+        } else {
+            alert( 'No se encontraron resultados para tu búsqueda.' );
+        }
+    } );
+
+    // Permitir agregar con Enter
+    searchInput.addEventListener( 'keypress', function ( e ) {
+        if ( e.key === 'Enter' ) {
+            addButton.click();
+        }
+    } );
+
+    // Actualizar tiempos cada segundo
+    updateAllTimes();
+    setInterval( updateAllTimes, 1000 );
 } );
-
-// Inicialización
-renderMainMarkets();
-showSuggestions();
-updateClocks();
-
-// Actualizar cada segundo
-setInterval( updateClocks, 1000 );
