@@ -390,7 +390,7 @@ body {
     display: flex;
     width: 100dvh;
     justify-content: space-between;
-    max-width: 260px;
+    max-width: 300px;
   }
 
   .mobile-time {
@@ -482,6 +482,7 @@ body {
   .clock-card p {
     font-size: 0.95rem;
     line-height: 1.4;
+    display: inline;
   }
 }
 
