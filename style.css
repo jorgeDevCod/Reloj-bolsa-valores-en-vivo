@@ -405,7 +405,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
     gap: 12px;
   }
 
@@ -536,5 +535,58 @@ body {
   .peru-time-comparison {
     font-size: 0.65rem;
     margin-left: 18px;
+  }
+}
+
+.footer-section {
+  background: linear-gradient(
+    135deg,
+    rgba(71, 85, 105, 0.1),
+    rgba(100, 116, 139, 0.05),
+    rgba(71, 85, 105, 0.1)
+  );
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(147, 197, 253, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.footer-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(139, 92, 246, 0.03),
+    rgba(59, 130, 246, 0.03),
+    rgba(139, 92, 246, 0.03)
+  );
+  pointer-events: none;
+}
+
+.footer-info h3 {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #ffffff, #e0e7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.footer-description {
+  backdrop-filter: blur(5px);
+}
+
+@media (max-width: 768px) {
+
+  .footer-info,
+  .footer-description {
+    text-align: center;
+  }
+
+  .footer-description .flex {
+    justify-content: center;
   }
 }
