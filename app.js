@@ -202,7 +202,7 @@ function createMarketCard( market, isUser = false ) {
                             -- de ---- de ----
                         </div>
                         ${isUser ? `<button onclick="removeUserMarket('${market.timezone}')" class="text-red-400 hover:text-red-700 transition-colors mt-2  position-close" title="Eliminar">
-                            <i class="fas fa-times text-2xl"></i>
+                            <i class="fas fa-times text-xl"></i>
                         </button>` : ''}
                     </div>
                 </div>

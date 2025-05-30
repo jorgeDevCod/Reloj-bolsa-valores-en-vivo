@@ -361,8 +361,8 @@ body {
 
 .position-close {
   position: absolute;
-  top: -4px;
-  right: 8px;
+  top: -2px;
+  right: 10px;
 }
 
 /* Responsive mejorado para móvil */
@@ -580,7 +580,6 @@ body {
 }
 
 @media (max-width: 768px) {
-
   .footer-info,
   .footer-description {
     text-align: center;
