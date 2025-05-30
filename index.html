@@ -56,24 +56,51 @@
         <!-- Perú - Primera fila destacada -->
         <div class="mb-8">
             <div class="clock-card peru-card rounded-2xl p-6 text-white shadow-2xl">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-2xl font-bold mb-2">
-                            <i class="fas fa-flag mr-2"></i>PERÚ - LIMA
-                        </h2>
-                        <p class="text-blue-100">Bolsa de Valores de Lima (BVL)</p>
+                <div class="mobile-card-content">
+                    <!-- Header móvil con información y tiempo -->
+                    <div class="mobile-header">
+                        <div class="mobile-info">
+                            <h2 class="text-2xl font-bold mb-2">
+                                <i class="fas fa-flag mr-2"></i>PERÚ - LIMA
+                            </h2>
+                            <p class="text-blue-100">Bolsa de Valores de Lima (BVL)</p>
+                            <div class="mt-3 text-sm text-blue-200 market-hours">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <i class="fas fa-door-open"></i>
+                                    <span>Apertura: 09:00</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-door-closed"></i>
+                                    <span>Cierre: 15:30</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mobile-time">
+                            <div class="digital-font text-4xl md:text-5xl font-bold" id="peru-time">
+                                --:--:--
+                            </div>
+                            <div class="text-lg" id="peru-date">
+                                -- de ---- de ----
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="digital-font text-4xl md:text-5xl font-bold" id="peru-time">
-                            --:--:--
-                        </div>
-                        <div class="text-lg" id="peru-date">
-                            -- de ---- de ----
-                        </div>
-                        <div class="mt-2">
-                            <span class="market-status px-3 py-1 rounded-full text-sm font-semibold" id="peru-status">
-                                Calculando...
-                            </span>
+
+                    <!-- Fila de estado y alertas móvil -->
+                    <div class="mobile-status-row">
+                        <span class="market-status px-3 py-1 rounded-full text-sm font-semibold" id="peru-status">
+                            Calculando...
+                        </span>
+
+                        <!-- Botones de alertas para Perú -->
+                        <div class="mobile-alerts">
+                            <button onclick="toggleAlert('America/Lima-PERÚ', 'open')" class="alert-btn rounded transition-all duration-300" id="peru-open-alert" title="Activar alerta de apertura">
+                                <i class="fas fa-bell-slash"></i>
+                                <span class="alert-text">Apertura</span>
+                            </button>
+                            <button onclick="toggleAlert('America/Lima-PERÚ', 'close')" class="alert-btn rounded transition-all duration-300" id="peru-close-alert" title="Activar alerta de cierre">
+                                <i class="fas fa-bell-slash"></i>
+                                <span class="alert-text">Cierre</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -81,12 +108,12 @@
         </div>
 
         <!-- Mercados principales -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="main-markets">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 mobile-grid" id="main-markets">
             <!-- Los mercados se cargarán aquí -->
         </div>
 
         <!-- Mercados agregados por el usuario -->
-        <div id="user-markets" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="user-markets" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mobile-grid">
             <!-- Los mercados del usuario se cargarán aquí -->
         </div>
     </div>

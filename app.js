@@ -55,11 +55,14 @@ const mainMarkets = [
     }
 ];
 
+
 // Variables globales
 let worldCities = [];
 let userMarkets = [];
 let searchResults = [];
 let isLoading = true;
+let marketAlerts = new Map(); // Para almacenar las alertas activas
+let notificationPermission = false;
 
 // Función para escapar HTML y prevenir XSS
 function escapeHtml( text ) {
@@ -157,32 +160,72 @@ function getMarketStatus( timezone, openHour = 9, closeHour = 17 ) {
 // Función para crear una tarjeta de mercado
 function createMarketCard( market, isUser = false ) {
     const marketStatus = getMarketStatus( market.timezone, market.openHour, market.closeHour );
+    const marketKey = `${market.timezone}-${market.name}`;
+    const hasOpenAlert = marketAlerts.has( `${marketKey}-open` );
+    const hasCloseAlert = marketAlerts.has( `${marketKey}-close` );
+
+    // Formatear horarios
+    const openTime = formatHour( market.openHour );
+    const closeTime = formatHour( market.closeHour );
 
     return `
         <div class="clock-card rounded-2xl p-6 text-white shadow-xl ${marketStatus.status === 'Abierto' ? 'market-open' : marketStatus.status === 'Cerrado' ? 'market-closed' : 'market-pre'}">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <h3 class="text-xl font-bold mb-1">
-                        ${market.flag} ${market.name}
-                    </h3>
-                    <p class="text-blue-100 text-sm">${market.country}</p>
-                    <p class="text-blue-200 text-xs">${market.market || 'Mercado Principal'}</p>
+            <div class="mobile-card-content">
+                <!-- Header móvil con información y tiempo -->
+                <div class="mobile-header">
+                    <div class="mobile-info row">
+                    <div class="info-titles">
+                        <h3 class="text-xl font-bold mb-1">
+                            ${market.flag} ${market.name}
+                        </h3>
+                        <p class="text-blue-100 text-sm">${market.country}</p>
+                        <p class="text-blue-300 text-xs">${market.market || 'Mercado Principal'}</p>
+                        </div>
+                        <div class="mt-2 text-xs text-blue-300 market-hours">
+                            <div class="flex items-center gap-1 mb-1">
+                                <i class="fas fa-door-open"></i>
+                                <span>Apertura: ${openTime}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <i class="fas fa-door-closed"></i>
+                                <span>Cierre: ${closeTime}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mobile-time">
+                        <div class="digital-font text-2xl md:text-3xl font-bold market-time" data-timezone="${market.timezone}">
+                            --:--:--
+                        </div>
+                        <div class="text-sm market-date" data-timezone="${market.timezone}">
+                            -- de ---- de ----
+                        </div>
+                        ${isUser ? `<button onclick="removeUserMarket('${market.timezone}')" class="text-red-300 hover:text-red-100 transition-colors mt-2" title="Eliminar">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>` : ''}
+                    </div>
                 </div>
-                ${isUser ? `<button onclick="removeUserMarket('${market.timezone}')" class="text-red-300 hover:text-red-100 transition-colors" title="Eliminar">
-                    <i class="fas fa-times text-lg"></i>
-                </button>` : ''}
-            </div>
-            <div class="text-right">
-                <div class="digital-font text-2xl md:text-3xl font-bold market-time" data-timezone="${market.timezone}">
-                    --:--:--
-                </div>
-                <div class="text-sm market-date" data-timezone="${market.timezone}">
-                    -- de ---- de ----
-                </div>
-                <div class="mt-2">
+                
+                <!-- Fila de estado y alertas móvil -->
+                <div class="mobile-status-row">
                     <span class="market-status px-3 py-1 rounded-full text-xs font-semibold ${marketStatus.class}">
                         ${marketStatus.status}
                     </span>
+                    
+                    <!-- Botones de alertas móvil -->
+                    <div class="mobile-alerts">
+                        <button onclick="toggleAlert('${marketKey}', 'open')" 
+                                class="alert-btn rounded transition-all duration-300 ${hasOpenAlert ? 'active-open' : ''}" 
+                                title="${hasOpenAlert ? 'Cancelar alerta de apertura' : 'Activar alerta de apertura'}">
+                            <i class="fas fa-bell${hasOpenAlert ? '' : '-slash'}"></i>
+                            <span class="alert-text">Apertura</span>
+                        </button>
+                        <button onclick="toggleAlert('${marketKey}', 'close')" 
+                                class="alert-btn rounded transition-all duration-300 ${hasCloseAlert ? 'active-close' : ''}" 
+                                title="${hasCloseAlert ? 'Cancelar alerta de cierre' : 'Activar alerta de cierre'}">
+                            <i class="fas fa-bell${hasCloseAlert ? '' : '-slash'}"></i>
+                            <span class="alert-text">Cierre</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -466,6 +509,117 @@ function renderMainMarkets() {
     const mainMarketsContainer = document.getElementById( 'main-markets' );
     const marketsHTML = mainMarkets.map( market => createMarketCard( market, false ) ).join( '' );
     mainMarketsContainer.innerHTML = marketsHTML;
+}
+
+// Función para formatear horas
+function formatHour( hour ) {
+    const hours = Math.floor( hour );
+    const minutes = Math.round( ( hour - hours ) * 60 );
+    return `${hours.toString().padStart( 2, '0' )}:${minutes.toString().padStart( 2, '0' )}`;
+}
+
+// Función para solicitar permisos de notificación
+async function requestNotificationPermission() {
+    if ( 'Notification' in window ) {
+        const permission = await Notification.requestPermission();
+        notificationPermission = permission === 'granted';
+        return notificationPermission;
+    }
+    return false;
+}
+
+// Función para enviar notificación
+function sendNotification( title, body, icon = 'fas fa-bell' ) {
+    if ( notificationPermission && 'Notification' in window ) {
+        new Notification( title, {
+            body: body,
+            icon: '/favicon-v2.png', // Usa el favicon del sitio
+            requireInteraction: true
+        } );
+    }
+}
+
+// Función para alternar alertas
+async function toggleAlert( marketKey, alertType ) {
+    const alertId = `${marketKey}-${alertType}`;
+
+    if ( marketAlerts.has( alertId ) ) {
+        // Cancelar alerta
+        clearTimeout( marketAlerts.get( alertId ).timeoutId );
+        marketAlerts.delete( alertId );
+        console.log( `Alerta cancelada: ${alertId}` );
+    } else {
+        // Activar alerta
+        if ( !notificationPermission ) {
+            const granted = await requestNotificationPermission();
+            if ( !granted ) {
+                alert( 'Para recibir alertas, debes permitir las notificaciones en tu navegador.' );
+                return;
+            }
+        }
+
+        // Encontrar el mercado
+        const [ timezone, ...nameParts ] = marketKey.split( '-' );
+        const marketName = nameParts.join( '-' );
+
+        let market = mainMarkets.find( m => m.timezone === timezone );
+        if ( !market ) {
+            market = userMarkets.find( m => m.timezone === timezone );
+        }
+
+        if ( market ) {
+            scheduleAlert( market, alertType, alertId );
+            console.log( `Alerta programada: ${alertId}` );
+        }
+    }
+
+    // Actualizar la interfaz
+    renderMainMarkets();
+    renderUserMarkets();
+}
+
+// Función para programar alertas
+function scheduleAlert( market, alertType, alertId ) {
+    const now = new Date();
+    const marketTime = new Date( now.toLocaleString( "en-US", { timeZone: market.timezone } ) );
+    const targetHour = alertType === 'open' ? market.openHour : market.closeHour;
+
+    // Crear fecha objetivo para hoy
+    let targetTime = new Date( marketTime );
+    const hours = Math.floor( targetHour );
+    const minutes = Math.round( ( targetHour - hours ) * 60 );
+    targetTime.setHours( hours, minutes, 0, 0 );
+
+    // Si ya pasó la hora hoy, programar para mañana
+    if ( targetTime <= marketTime ) {
+        targetTime.setDate( targetTime.getDate() + 1 );
+    }
+
+    // Saltar fines de semana
+    while ( targetTime.getDay() === 0 || targetTime.getDay() === 6 ) {
+        targetTime.setDate( targetTime.getDate() + 1 );
+    }
+
+    const timeUntilAlert = targetTime.getTime() - now.getTime();
+
+    const timeoutId = setTimeout( () => {
+        const actionText = alertType === 'open' ? 'abrió' : 'cerró';
+        const title = `${market.flag} ${market.name} - ${market.country}`;
+        const body = `El mercado ${market.market} ${actionText} (${formatHour( targetHour )})`;
+
+        sendNotification( title, body );
+
+        // Reprogramar para el siguiente día hábil
+        marketAlerts.delete( alertId );
+        scheduleAlert( market, alertType, alertId );
+    }, timeUntilAlert );
+
+    marketAlerts.set( alertId, {
+        timeoutId: timeoutId,
+        market: market,
+        alertType: alertType,
+        targetTime: targetTime
+    } );
 }
 
 // Event Listeners
