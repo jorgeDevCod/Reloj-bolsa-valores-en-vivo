@@ -178,10 +178,10 @@ function createMarketCard( market, isUser = false ) {
                         <h3 class="text-xl font-bold mb-1">
                             ${market.flag} ${market.name}
                         </h3>
-                        <p class="text-blue-100 text-sm">${market.country}</p>
-                        <p class="text-blue-300 text-xs">${market.market || 'Mercado Principal'}</p>
+                        <p class="text-white text-sm">${market.country}</p>
+                        <p class="text-white text-xs">${market.market || 'Mercado Principal'}</p>
                         </div>
-                        <div class="mt-2 text-xs text-blue-300 market-hours">
+                        <div class="mt-2 text-xs text-white market-hours">
                             <div class="flex items-center gap-1 mb-1">
                                 <i class="fas fa-door-open"></i>
                                 <span>Apertura: ${openTime}</span>
@@ -199,14 +199,14 @@ function createMarketCard( market, isUser = false ) {
                         <div class="text-sm market-date" data-timezone="${market.timezone}">
                             -- de ---- de ----
                         </div>
-                        ${isUser ? `<button onclick="removeUserMarket('${market.timezone}')" class="text-red-300 hover:text-red-100 transition-colors mt-2" title="Eliminar">
-                            <i class="fas fa-times text-lg"></i>
+                        ${isUser ? `<button onclick="removeUserMarket('${market.timezone}')" class="text-red-400 hover:text-red-700 transition-colors mt-2  position-close" title="Eliminar">
+                            <i class="fas fa-times text-2xl"></i>
                         </button>` : ''}
                     </div>
                 </div>
                 
                 <!-- Fila de estado y alertas móvil -->
-                <div class="mobile-status-row">
+                <div class="mobile-status-row mobile">
                     <span class="market-status px-3 py-1 rounded-full text-xs font-semibold ${marketStatus.class}">
                         ${marketStatus.status}
                     </span>
@@ -273,7 +273,7 @@ function showSearchResults( results ) {
             <div class="text-center py-4">
                 <i class="fas fa-search text-white text-xl mb-2"></i>
                 <p class="text-white">No se encontraron resultados para tu búsqueda.</p>
-                <p class="text-blue-200 text-sm mt-1">Intenta con nombres como: Londres, Tokyo, Mumbai, etc.</p>
+                <p class="text-white text-sm mt-1">Intenta con nombres como: Londres, Tokyo, Mumbai, etc.</p>
             </div>
         `;
         return;
@@ -290,7 +290,7 @@ function showSearchResults( results ) {
 
     suggestionsContainer.innerHTML = `
         <div class="mb-2">
-            <p class="text-blue-200 text-sm">Resultados encontrados (${results.length}):</p>
+            <p class="text-white text-sm">Resultados encontrados (${results.length}):</p>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
             ${suggestions}
@@ -314,7 +314,7 @@ function showDefaultSuggestions() {
 
     suggestionsContainer.innerHTML = `
         <div class="mb-2">
-            <p class="text-blue-200 text-sm">Ciudades populares:</p>
+            <p class="text-white text-sm">Ciudades populares:</p>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
             ${suggestions}

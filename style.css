@@ -310,7 +310,6 @@ body {
   transition: all 0.3s ease;
 }
 
-/* Mejoras en textos generales para mejor legibilidad */
 .clock-card h2,
 .clock-card h3 {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
@@ -319,7 +318,7 @@ body {
 }
 
 .clock-card p {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 2px rgba(238, 234, 234, 0.884);
   font-weight: 500;
 }
 
@@ -327,12 +326,43 @@ body {
 .market-hours {
   font-weight: 600;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: aliceblue;
 }
 
 .market-hours i {
   width: 16px;
   text-align: center;
   margin-right: 6px;
+}
+
+.mobile-header.desktop {
+  display: flex;
+  justify-content: space-between;
+}
+
+.mobile-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.mobile-alerts {
+  display: flex;
+  gap: 8px;
+}
+
+.mobile-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.position-close {
+  position: absolute;
+  top: -4px;
+  right: 8px;
 }
 
 /* Responsive mejorado para móvil */
@@ -349,10 +379,7 @@ body {
   }
 
   .mobile-header {
-    display: flex;
-    align-items: flex-start;
     flex-direction: column-reverse;
-    gap: 16px;
   }
 
   .mobile-info {
@@ -361,7 +388,9 @@ body {
 
   .mobile-info.row {
     display: flex;
-    max-width: 300px;
+    width: 100dvh;
+    justify-content: space-between;
+    max-width: 260px;
   }
 
   .mobile-time {
@@ -376,9 +405,13 @@ body {
     gap: 12px;
   }
 
-  .mobile-alerts {
-    display: flex;
-    gap: 8px;
+  .mobile-status-row.mobile {
+    justify-content: flex-start;
+  }
+
+  .position-close {
+    top: 0px;
+    right: 14px;
   }
 
   /* Botones de alerta móvil mejorados */
@@ -414,7 +447,7 @@ body {
   /* Horarios móvil */
   .market-hours {
     font-size: 12px;
-    line-height: 1.5;
+    letter-spacing: 0.8px;
     font-weight: 600;
   }
 
