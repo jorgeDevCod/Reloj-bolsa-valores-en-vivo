@@ -173,7 +173,7 @@ function createMarketCard( market, isUser = false ) {
             <div class="mobile-card-content">
                 <!-- Header móvil con información y tiempo -->
                 <div class="mobile-header">
-                    <div class="mobile-info row">
+                    <div class="mobile-info row lg:flex lg:flex-col lg:gap-2 lg:mb-2">
                     <div class="info-titles">
                         <h3 class="text-xl font-bold mb-1">
                             ${market.flag} ${market.name}
@@ -182,7 +182,7 @@ function createMarketCard( market, isUser = false ) {
                         <p class="text-white text-xs">${market.market || 'Mercado Principal'}</p>
                         </div>
                         <div class="text-xs text-white market-hours">
-                        <div class="items-cente mb-1">
+                        <div class="items-cente mb-2">
                         <i class="fas fa-door-open"></i>
                         <span>Apertura: ${openTime}</span>
                         <span class="peru-time-comparison">(${getPeruEquivalentTime( market.timezone, market.openHour )} PE)</span>
