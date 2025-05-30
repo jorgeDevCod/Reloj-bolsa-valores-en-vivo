@@ -386,6 +386,10 @@ body {
     flex: 1;
   }
 
+  .info-titles {
+    max-width: 156px;
+  }
+
   .mobile-info.row {
     display: flex;
     width: 100dvh;
@@ -505,5 +509,32 @@ body {
 
   .digital-font {
     font-size: 2rem !important;
+  }
+}
+
+/* Estilos para comparación de horario peruano */
+.peru-time-comparison {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  margin-left: 4px;
+  letter-spacing: 0.3px;
+}
+
+/* Responsive para comparación de horarios */
+@media (max-width: 768px) {
+  .peru-time-comparison {
+    font-size: 0.7rem;
+    display: block;
+    margin-left: 20px;
+    margin-top: 2px;
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 480px) {
+  .peru-time-comparison {
+    font-size: 0.65rem;
+    margin-left: 18px;
   }
 }

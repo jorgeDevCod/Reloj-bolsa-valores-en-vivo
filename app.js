@@ -181,15 +181,17 @@ function createMarketCard( market, isUser = false ) {
                         <p class="text-white text-sm">${market.country}</p>
                         <p class="text-white text-xs">${market.market || 'Mercado Principal'}</p>
                         </div>
-                        <div class="mt-2 text-xs text-white market-hours">
-                            <div class="flex items-center gap-1 mb-1">
-                                <i class="fas fa-door-open"></i>
-                                <span>Apertura: ${openTime}</span>
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <i class="fas fa-door-closed"></i>
-                                <span>Cierre: ${closeTime}</span>
-                            </div>
+                        <div class="text-xs text-white market-hours">
+                        <div class="items-cente mb-1">
+                        <i class="fas fa-door-open"></i>
+                        <span>Apertura: ${openTime}</span>
+                        <span class="peru-time-comparison">(${getPeruEquivalentTime( market.timezone, market.openHour )} PE)</span>
+                    </div>
+                    <div class="items-center">
+                        <i class="fas fa-door-closed"></i>
+                        <span>Cierre: ${closeTime}</span>
+                        <span class="peru-time-comparison">(${getPeruEquivalentTime( market.timezone, market.closeHour )} PE)</span>
+                    </div>
                         </div>
                     </div>
                     <div class="mobile-time">
@@ -482,7 +484,7 @@ function updateMarketStatuses() {
             }
 
             // Actualizar clase del card
-            marketCard.className = `clock-card rounded-2xl p-6 text-white shadow-xl ${marketStatus.status === 'Abierto' ? 'market-open' : marketStatus.status === 'Cerrado' ? 'market-closed' : 'market-pre'}`;
+            marketCard.className = `clock-card rounded-2xl p-5 text-white shadow-xl ${marketStatus.status === 'Abierto' ? 'market-open' : marketStatus.status === 'Cerrado' ? 'market-closed' : 'market-pre'}`;
         }
     } );
 
@@ -576,6 +578,33 @@ async function toggleAlert( marketKey, alertType ) {
     // Actualizar la interfaz
     renderMainMarkets();
     renderUserMarkets();
+}
+
+// Función para obtener hora equivalente en horario peruano
+function getPeruEquivalentTime( timezone, hour ) {
+    const now = new Date();
+    const marketTime = new Date( now.toLocaleString( "en-US", { timeZone: timezone } ) );
+    const peruTime = new Date( now.toLocaleString( "en-US", { timeZone: "America/Lima" } ) );
+
+    // Calcular diferencia horaria
+    const timeDifference = ( peruTime.getTime() - marketTime.getTime() ) / ( 1000 * 60 * 60 );
+
+    // Ajustar la hora del mercado al horario peruano
+    const adjustedHour = hour + timeDifference;
+
+    // Manejar horas que cruzan medianoche
+    let finalHour = adjustedHour;
+    let dayIndicator = '';
+
+    if ( adjustedHour < 0 ) {
+        finalHour = adjustedHour + 24;
+        dayIndicator = ' -1d';
+    } else if ( adjustedHour >= 24 ) {
+        finalHour = adjustedHour - 24;
+        dayIndicator = ' +1d';
+    }
+
+    return formatHour( finalHour ) + dayIndicator;
 }
 
 // Función para programar alertas
