@@ -123,6 +123,15 @@ async function loadPersistedAlerts( alerts = null ) {
         // Actualizar interfaz
         renderMainMarkets();
         renderUserMarkets();
+
+        const alertsPanel = document.getElementById( 'alerts-panel' );
+        if ( alertsPanel && !alertsPanel.classList.contains( 'hidden' ) ) {
+            updateAlertsPanel();
+        }
+
+        // Actualizar contador al cargar alertas persistentes
+        updateAlertsCounter();
+
         console.log( `Cargadas ${alerts.length} alertas persistentes` );
     }
 }
@@ -229,23 +238,36 @@ function showLoadingState( loading, errorMessage = null ) {
 
 // Función para obtener el estado del mercado
 function getMarketStatus( timezone, openHour = 9, closeHour = 17 ) {
-    const now = new Date();
-    const marketTime = new Date( now.toLocaleString( "en-US", { timeZone: timezone } ) );
-    const hours = marketTime.getHours() + marketTime.getMinutes() / 60;
-    const day = marketTime.getDay();
+    try {
+        // Crear un objeto Date para la zona horaria específica
+        const now = new Date();
+        const marketTime = new Date( now.toLocaleString( "en-US", { timeZone: timezone } ) );
 
-    // Weekend
-    if ( day === 0 || day === 6 ) {
-        return { status: 'Cerrado', class: 'status-closed' };
-    }
+        // getDay() devuelve: 0=domingo, 1=lunes, 2=martes, 3=miércoles, 4=jueves, 5=viernes, 6=sábado
+        const dayOfWeek = marketTime.getDay();
 
-    // Market hours
-    if ( hours >= openHour && hours < closeHour ) {
-        return { status: 'Abierto', class: 'status-open' };
-    } else if ( hours >= ( openHour - 1 ) && hours < openHour ) {
-        return { status: 'Pre-apertura', class: 'status-pre' };
-    } else {
-        return { status: 'Cerrado', class: 'status-closed' };
+        // Calcular la hora actual en formato decimal
+        const currentHour = marketTime.getHours() + marketTime.getMinutes() / 60;
+
+        // Debug: log para verificar valores
+        console.log( `${timezone}: día=${dayOfWeek}, hora=${currentHour.toFixed( 2 )}, apertura=${openHour}, cierre=${closeHour}` );
+
+        // Verificar si es fin de semana
+        if ( dayOfWeek === 0 || dayOfWeek === 6 ) {
+            return { status: 'Cerrado', class: 'status-closed' };
+        }
+
+        // Verificar horarios del mercado
+        if ( currentHour >= openHour && currentHour < closeHour ) {
+            return { status: 'Abierto', class: 'status-open' };
+        } else if ( currentHour >= ( openHour - 1 ) && currentHour < openHour ) {
+            return { status: 'Pre-apertura', class: 'status-pre' };
+        } else {
+            return { status: 'Cerrado', class: 'status-closed' };
+        }
+    } catch ( error ) {
+        console.error( `Error obteniendo estado del mercado para ${timezone}:`, error );
+        return { status: 'Error', class: 'status-closed' };
     }
 }
 
@@ -301,7 +323,7 @@ function createMarketCard( market, isUser = false ) {
                 
                 <!-- Fila de estado y alertas móvil -->
                 <div class="mobile-status-row mobile">
-                    <span class="market-status px-3 py-1 rounded-full text-xs font-semibold ${marketStatus.class}">
+                    <span class="market-status rounded-full ${marketStatus.class}">
                         ${marketStatus.status}
                     </span>
                     
@@ -469,24 +491,32 @@ function updateAllTimes() {
     // Actualizar mercados principales
     document.querySelectorAll( '#main-markets .market-time' ).forEach( timeElement => {
         const timezone = timeElement.getAttribute( 'data-timezone' );
-        updateTimeForTimezone( timeElement, timezone );
+        if ( timezone ) {
+            updateTimeForTimezone( timeElement, timezone );
+        }
     } );
 
     // Actualizar fechas de mercados principales
     document.querySelectorAll( '#main-markets .market-date' ).forEach( dateElement => {
         const timezone = dateElement.getAttribute( 'data-timezone' );
-        updateDateForTimezone( dateElement, timezone );
+        if ( timezone ) {
+            updateDateForTimezone( dateElement, timezone );
+        }
     } );
 
     // Actualizar mercados de usuario
     document.querySelectorAll( '#user-markets .market-time' ).forEach( timeElement => {
         const timezone = timeElement.getAttribute( 'data-timezone' );
-        updateTimeForTimezone( timeElement, timezone );
+        if ( timezone ) {
+            updateTimeForTimezone( timeElement, timezone );
+        }
     } );
 
     document.querySelectorAll( '#user-markets .market-date' ).forEach( dateElement => {
         const timezone = dateElement.getAttribute( 'data-timezone' );
-        updateDateForTimezone( dateElement, timezone );
+        if ( timezone ) {
+            updateDateForTimezone( dateElement, timezone );
+        }
     } );
 
     // Actualizar estados de mercado
@@ -499,67 +529,89 @@ function updatePeruTime() {
     const peruDateElement = document.getElementById( 'peru-date' );
     const peruStatusElement = document.getElementById( 'peru-status' );
 
-    if ( peruTimeElement && peruDateElement ) {
-        const now = new Date();
-        const peruTime = new Date( now.toLocaleString( "en-US", { timeZone: "America/Lima" } ) );
+    if ( peruTimeElement ) {
+        try {
+            const now = new Date();
+            const timeString = new Intl.DateTimeFormat( 'es-PE', {
+                timeZone: 'America/Lima',
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            } ).format( now );
 
-        // Formatear tiempo
-        const timeString = peruTime.toLocaleTimeString( 'es-PE', {
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        } );
-
-        // Formatear fecha
-        const dateString = peruTime.toLocaleDateString( 'es-PE', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        } );
-
-        peruTimeElement.textContent = timeString;
-        peruDateElement.textContent = dateString;
-
-        // Actualizar estado del mercado peruano (BVL: 9:00 - 15:30)
-        const marketStatus = getMarketStatus( 'America/Lima', 9, 15.5 );
-        if ( peruStatusElement ) {
-            peruStatusElement.textContent = marketStatus.status;
-            peruStatusElement.className = `market-status px-3 py-1 rounded-full text-sm font-semibold ${marketStatus.class}`;
+            peruTimeElement.textContent = timeString;
+        } catch ( error ) {
+            console.error( 'Error actualizando hora de Perú:', error );
+            peruTimeElement.textContent = '--:--:--';
         }
+    }
+
+    if ( peruDateElement ) {
+        try {
+            const now = new Date();
+            const dateString = new Intl.DateTimeFormat( 'es-PE', {
+                timeZone: 'America/Lima',
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            } ).format( now );
+
+            peruDateElement.textContent = dateString;
+        } catch ( error ) {
+            console.error( 'Error actualizando fecha de Perú:', error );
+            peruDateElement.textContent = '-- de ---- de ----';
+        }
+    }
+
+    // Actualizar estado del mercado peruano (BVL: 9:00 - 15:30)
+    if ( peruStatusElement ) {
+        const marketStatus = getMarketStatus( 'America/Lima', 9, 15.5 );
+        peruStatusElement.textContent = marketStatus.status;
+        peruStatusElement.className = `market-status rounded-full ${marketStatus.class}`;
     }
 }
 
 // Función para actualizar tiempo por zona horaria
 function updateTimeForTimezone( element, timezone ) {
-    const now = new Date();
-    const localTime = new Date( now.toLocaleString( "en-US", { timeZone: timezone } ) );
+    try {
+        const now = new Date();
+        // Usar Intl.DateTimeFormat para mejor compatibilidad
+        const timeString = new Intl.DateTimeFormat( 'es-ES', {
+            timeZone: timezone,
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        } ).format( now );
 
-    const timeString = localTime.toLocaleTimeString( 'es-ES', {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    } );
-
-    element.textContent = timeString;
+        element.textContent = timeString;
+    } catch ( error ) {
+        console.error( `Error actualizando tiempo para ${timezone}:`, error );
+        element.textContent = '--:--:--';
+    }
 }
-
 // Función para actualizar fecha por zona horaria
 function updateDateForTimezone( element, timezone ) {
-    const now = new Date();
-    const localTime = new Date( now.toLocaleString( "en-US", { timeZone: timezone } ) );
+    try {
+        const now = new Date();
+        // Usar Intl.DateTimeFormat para mejor compatibilidad
+        const dateString = new Intl.DateTimeFormat( 'es-ES', {
+            timeZone: timezone,
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        } ).format( now );
 
-    const dateString = localTime.toLocaleDateString( 'es-ES', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    } );
-
-    element.textContent = dateString;
+        element.textContent = dateString;
+    } catch ( error ) {
+        console.error( `Error actualizando fecha para ${timezone}:`, error );
+        element.textContent = '-- de ---- de ----';
+    }
 }
+
 
 // Función para actualizar estados de mercados
 function updateMarketStatuses() {
@@ -572,11 +624,11 @@ function updateMarketStatuses() {
 
             if ( statusElement ) {
                 statusElement.textContent = marketStatus.status;
-                statusElement.className = `market-status px-3 py-1 rounded-full text-xs font-semibold ${marketStatus.class}`;
+                statusElement.className = `market-status rounded-full ${marketStatus.class}`;
             }
 
             // Actualizar clase del card
-            marketCard.className = `clock-card rounded-2xl p-5 text-white shadow-xl ${marketStatus.status === 'Abierto' ? 'market-open' : marketStatus.status === 'Cerrado' ? 'market-closed' : 'market-pre'}`;
+            marketCard.className = `clock-card rounded-2xl py-5 px-4 text-white shadow-xl ${marketStatus.status === 'Abierto' ? 'market-open' : marketStatus.status === 'Cerrado' ? 'market-closed' : 'market-pre'}`;
         }
     } );
 
@@ -589,7 +641,7 @@ function updateMarketStatuses() {
 
             if ( statusElement ) {
                 statusElement.textContent = marketStatus.status;
-                statusElement.className = `market-status px-3 py-1 rounded-full text-xs font-semibold ${marketStatus.class}`;
+                statusElement.className = `market-status rounded-full ${marketStatus.class}`;
             }
 
             // Actualizar clase del card
@@ -705,6 +757,15 @@ async function toggleAlert( marketKey, alertType ) {
     // Actualizar la interfaz
     renderMainMarkets();
     renderUserMarkets();
+
+    // *** ACTUALIZAR PANEL DE ALERTAS SI ESTÁ ABIERTO ***
+    const alertsPanel = document.getElementById( 'alerts-panel' );
+    if ( alertsPanel && !alertsPanel.classList.contains( 'hidden' ) ) {
+        updateAlertsPanel();
+    }
+
+    // Actualizar contador automáticamente
+    updateAlertsCounter();
 }
 
 // Mostrar feedback de alertas
@@ -853,12 +914,12 @@ function toggleAlertsPanel() {
 // Actualizar panel de alertas
 function updateAlertsPanel() {
     const alertsList = document.getElementById( 'alerts-list' );
-    const alertsCount = document.getElementById( 'alerts-count' );
 
-    if ( !alertsList || !alertsCount ) return;
+    updateAlertsCounter();
+
+    if ( !alertsList ) return;
 
     const activeAlerts = Array.from( marketAlerts.entries() );
-    alertsCount.textContent = activeAlerts.length;
 
     if ( activeAlerts.length === 0 ) {
         alertsList.innerHTML = `
@@ -892,6 +953,17 @@ function updateAlertsPanel() {
     alertsList.innerHTML = alertsHTML;
 }
 
+function updateAlertsCounter() {
+    const alertsCount = document.getElementById( 'alerts-count' );
+    if ( alertsCount ) {
+        const activeAlertsCount = marketAlerts.size;
+        alertsCount.textContent = activeAlertsCount;
+
+        // Mostrar/ocultar el contador según si hay alertas
+        alertsCount.style.display = activeAlertsCount > 0 ? 'flex' : 'none';
+    }
+}
+
 // Obtener tiempo restante para una alerta
 function getTimeRemaining( targetTime ) {
     const now = new Date();
@@ -912,73 +984,103 @@ function getTimeRemaining( targetTime ) {
 async function cancelAlertFromPanel( alertId ) {
     marketAlerts.delete( alertId );
     await cancelPersistentAlert( alertId );
+
+    // *** ACTUALIZAR PANEL INMEDIATAMENTE ***
     updateAlertsPanel();
+
+    // Actualizar interfaz de mercados
     renderMainMarkets();
     renderUserMarkets();
+
     showAlertFeedback( 'Alerta cancelada', 'warning' );
+
+    // Actualizar contador automáticamente
+    updateAlertsCounter();
 }
+
 
 // Event Listeners
 document.addEventListener( 'DOMContentLoaded', async function () {
+    console.log( 'DOM cargado, iniciando aplicación...' );
+
     // Inicializar Service Worker primero
     await initServiceWorker();
 
     // Crear panel de alertas
     createAlertsPanel();
 
-    // Cargar datos y renderizar (tu código existente)
-    loadCitiesData();
+    // Cargar datos y renderizar
+    await loadCitiesData();
     renderMainMarkets();
+
+    // ACTUALIZAR TIEMPOS INMEDIATAMENTE Y CONFIGURAR INTERVALO
+    console.log( 'Iniciando actualización de tiempos...' );
+    updateAllTimes(); // Primera actualización inmediata
+
+    // Configurar intervalo para actualizar cada segundo
+    const timeUpdateInterval = setInterval( () => {
+        updateAllTimes();
+    }, 1000 );
+
+    // Configurar intervalo para actualizar panel de alertas cada minuto
+    const alertsUpdateInterval = setInterval( () => {
+        const alertsPanel = document.getElementById( 'alerts-panel' );
+        if ( alertsPanel && !alertsPanel.classList.contains( 'hidden' ) ) {
+            updateAlertsPanel();
+        }
+    }, 60000 );
 
     // Event listener para búsqueda
     const searchInput = document.getElementById( 'country-search' );
     const addButton = document.getElementById( 'add-country-btn' );
 
-    searchInput.addEventListener( 'input', function () {
-        if ( isLoading ) return;
+    if ( searchInput ) {
+        searchInput.addEventListener( 'input', function () {
+            if ( isLoading ) return;
 
-        const searchTerm = this.value.trim();
-        if ( searchTerm.length === 0 ) {
-            showDefaultSuggestions();
-            return;
-        }
+            const searchTerm = this.value.trim();
+            if ( searchTerm.length === 0 ) {
+                showDefaultSuggestions();
+                return;
+            }
 
-        if ( searchTerm.length >= 2 ) {
+            if ( searchTerm.length >= 2 ) {
+                const results = searchCities( searchTerm );
+                showSearchResults( results );
+            }
+        } );
+
+        // Permitir agregar con Enter
+        searchInput.addEventListener( 'keypress', function ( e ) {
+            if ( e.key === 'Enter' && addButton ) {
+                addButton.click();
+            }
+        } );
+    }
+
+    if ( addButton ) {
+        addButton.addEventListener( 'click', function () {
+            const searchTerm = searchInput.value.trim();
+            if ( !searchTerm ) {
+                alert( 'Por favor, escribe el nombre de una ciudad o país' );
+                return;
+            }
+
             const results = searchCities( searchTerm );
-            showSearchResults( results );
-        }
-    } );
+            if ( results.length === 1 ) {
+                const city = results[ 0 ];
+                addCityFromResults( city.timezone, city.name, city.country, city.market, city.flag, city.openHour, city.closeHour );
+            } else if ( results.length > 1 ) {
+                alert( 'Se encontraron múltiples resultados. Por favor, selecciona uno de la lista.' );
+            } else {
+                alert( 'No se encontraron resultados para tu búsqueda.' );
+            }
+        } );
+    }
 
-    addButton.addEventListener( 'click', function () {
-        const searchTerm = searchInput.value.trim();
-        if ( !searchTerm ) {
-            alert( 'Por favor, escribe el nombre de una ciudad o país' );
-            return;
-        }
+    // Actualizar contador inicial
+    updateAlertsCounter();
 
-        const results = searchCities( searchTerm );
-        if ( results.length === 1 ) {
-            const city = results[ 0 ];
-            addCityFromResults( city.timezone, city.name, city.country, city.market, city.flag, city.openHour, city.closeHour );
-        } else if ( results.length > 1 ) {
-            alert( 'Se encontraron múltiples resultados. Por favor, selecciona uno de la lista.' );
-        } else {
-            alert( 'No se encontraron resultados para tu búsqueda.' );
-        }
-    } );
-
-    // Permitir agregar con Enter
-    searchInput.addEventListener( 'keypress', function ( e ) {
-        if ( e.key === 'Enter' ) {
-            addButton.click();
-        }
-    } );
-
-
-    // Actualizar tiempos cada segundo
-    updateAllTimes();
-    setInterval( updateAllTimes, 1000 );
-
-    // Actualizar panel de alertas cada minuto
-    setInterval( updateAlertsPanel, 60000 );
+    console.log( 'Aplicación iniciada correctamente' );
 } );
+
