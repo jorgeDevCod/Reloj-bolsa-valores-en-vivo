@@ -628,7 +628,7 @@ function updateMarketStatuses() {
             }
 
             // Actualizar clase del card
-            marketCard.className = `clock-card rounded-2xl py-5 px-4 text-white shadow-xl ${marketStatus.status === 'Abierto' ? 'market-open' : marketStatus.status === 'Cerrado' ? 'market-closed' : 'market-pre'}`;
+            marketCard.className = `clock-card rounded-2xl p-5 text-white shadow-xl ${marketStatus.status === 'Abierto' ? 'market-open' : marketStatus.status === 'Cerrado' ? 'market-closed' : 'market-pre'}`;
         }
     } );
 

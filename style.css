@@ -442,9 +442,9 @@ body {
   /* Estado del mercado móvil */
   .market-status {
     font-size: 14px;
-    padding: 14px;
+    padding: 16px;
     font-weight: 500;
-  
+    min-width: 90px;
   }
 
   /* Horarios móvil */
