@@ -55,14 +55,106 @@ const mainMarkets = [
     }
 ];
 
-
-// Variables globales
+// Variables globales mejoradas
 let worldCities = [];
 let userMarkets = [];
 let searchResults = [];
 let isLoading = true;
 let marketAlerts = new Map(); // Para almacenar las alertas activas
 let notificationPermission = false;
+let serviceWorker = null;
+
+// Inicializar Service Worker
+async function initServiceWorker() {
+    if ( 'serviceWorker' in navigator ) {
+        try {
+            const registration = await navigator.serviceWorker.register( 'sw.js' );
+            console.log( 'Service Worker registrado exitosamente' );
+
+            // Obtener el service worker activo
+            serviceWorker = registration.active || registration.waiting || registration.installing;
+
+            // Escuchar mensajes del service worker
+            navigator.serviceWorker.addEventListener( 'message', event => {
+                const { type, alerts } = event.data;
+                if ( type === 'ACTIVE_ALERTS' ) {
+                    loadPersistedAlerts( alerts );
+                }
+            } );
+
+            // Cargar alertas persistentes al iniciar
+            await loadPersistedAlerts();
+
+        } catch ( error ) {
+            console.error( 'Error al registrar Service Worker:', error );
+        }
+    }
+}
+
+// Cargar alertas persistentes
+async function loadPersistedAlerts( alerts = null ) {
+    if ( !alerts && serviceWorker ) {
+        // Solicitar alertas al service worker
+        const messageChannel = new MessageChannel();
+        messageChannel.port1.onmessage = ( event ) => {
+            if ( event.data.type === 'ACTIVE_ALERTS' ) {
+                loadPersistedAlerts( event.data.alerts );
+            }
+        };
+
+        serviceWorker.postMessage(
+            { type: 'GET_ACTIVE_ALERTS' },
+            [ messageChannel.port2 ]
+        );
+        return;
+    }
+
+    if ( alerts && Array.isArray( alerts ) ) {
+        marketAlerts.clear();
+        alerts.forEach( alert => {
+            marketAlerts.set( alert.id, {
+                market: alert.market,
+                alertType: alert.alertType,
+                targetTime: new Date( alert.targetTime ),
+                persistent: true
+            } );
+        } );
+
+        // Actualizar interfaz
+        renderMainMarkets();
+        renderUserMarkets();
+        console.log( `Cargadas ${alerts.length} alertas persistentes` );
+    }
+}
+
+// Guardar alerta en Service Worker
+async function saveAlertToPersistence( alertId, market, alertType, targetTime, recurring = true ) {
+    if ( serviceWorker ) {
+        const alertData = {
+            id: alertId,
+            market: market,
+            alertType: alertType,
+            targetTime: targetTime.getTime(),
+            recurring: recurring,
+            created: Date.now()
+        };
+
+        serviceWorker.postMessage( {
+            type: 'SCHEDULE_ALERT',
+            data: alertData
+        } );
+    }
+}
+
+// Cancelar alerta persistente
+async function cancelPersistentAlert( alertId ) {
+    if ( serviceWorker ) {
+        serviceWorker.postMessage( {
+            type: 'CANCEL_ALERT',
+            data: { alertId }
+        } );
+    }
+}
 
 // Función para escapar HTML y prevenir XSS
 function escapeHtml( text ) {
@@ -525,10 +617,37 @@ async function requestNotificationPermission() {
     if ( 'Notification' in window ) {
         const permission = await Notification.requestPermission();
         notificationPermission = permission === 'granted';
+
+        if ( notificationPermission ) {
+            // Mostrar mensaje de confirmación
+            showNotificationSuccess();
+        }
+
         return notificationPermission;
     }
     return false;
 }
+
+// Mostrar mensaje de éxito para notificaciones
+function showNotificationSuccess() {
+    const successDiv = document.createElement( 'div' );
+    successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
+    successDiv.innerHTML = `
+        <div class="flex items-center gap-2">
+            <i class="fas fa-check-circle"></i>
+            <span>¡Notificaciones activadas! Las alertas persistirán incluso si cierras el navegador.</span>
+        </div>
+    `;
+
+    document.body.appendChild( successDiv );
+
+    // Remover después de 5 segundos
+    setTimeout( () => {
+        successDiv.style.opacity = '0';
+        setTimeout( () => successDiv.remove(), 300 );
+    }, 5000 );
+}
+
 
 // Función para enviar notificación
 function sendNotification( title, body, icon = 'fas fa-bell' ) {
@@ -547,15 +666,17 @@ async function toggleAlert( marketKey, alertType ) {
 
     if ( marketAlerts.has( alertId ) ) {
         // Cancelar alerta
-        clearTimeout( marketAlerts.get( alertId ).timeoutId );
         marketAlerts.delete( alertId );
+        await cancelPersistentAlert( alertId );
+
+        showAlertFeedback( `Alerta cancelada: ${alertType}`, 'warning' );
         console.log( `Alerta cancelada: ${alertId}` );
     } else {
         // Activar alerta
         if ( !notificationPermission ) {
             const granted = await requestNotificationPermission();
             if ( !granted ) {
-                alert( 'Para recibir alertas, debes permitir las notificaciones en tu navegador.' );
+                showAlertFeedback( 'Para recibir alertas, debes permitir las notificaciones en tu navegador.', 'error' );
                 return;
             }
         }
@@ -570,7 +691,13 @@ async function toggleAlert( marketKey, alertType ) {
         }
 
         if ( market ) {
-            scheduleAlert( market, alertType, alertId );
+            const targetTime = scheduleAlert( market, alertType, alertId );
+
+            // Guardar en persistencia
+            await saveAlertToPersistence( alertId, market, alertType, targetTime, true );
+
+            const timeStr = formatHour( alertType === 'open' ? market.openHour : market.closeHour );
+            showAlertFeedback( `Alerta programada: ${alertType} a las ${timeStr}`, 'success' );
             console.log( `Alerta programada: ${alertId}` );
         }
     }
@@ -578,6 +705,40 @@ async function toggleAlert( marketKey, alertType ) {
     // Actualizar la interfaz
     renderMainMarkets();
     renderUserMarkets();
+}
+
+// Mostrar feedback de alertas
+function showAlertFeedback( message, type = 'info' ) {
+    const colors = {
+        success: 'bg-green-500',
+        warning: 'bg-yellow-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500'
+    };
+
+    const icons = {
+        success: 'fas fa-check-circle',
+        warning: 'fas fa-exclamation-triangle',
+        error: 'fas fa-times-circle',
+        info: 'fas fa-info-circle'
+    };
+
+    const feedbackDiv = document.createElement( 'div' );
+    feedbackDiv.className = `fixed top-4 right-4 ${colors[ type ]} text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 max-w-md`;
+    feedbackDiv.innerHTML = `
+        <div class="flex items-center gap-2">
+            <i class="${icons[ type ]}"></i>
+            <span class="text-sm">${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild( feedbackDiv );
+
+    // Remover después de 3 segundos
+    setTimeout( () => {
+        feedbackDiv.style.opacity = '0';
+        setTimeout( () => feedbackDiv.remove(), 300 );
+    }, 3000 );
 }
 
 // Función para obtener hora equivalente en horario peruano
@@ -629,31 +790,143 @@ function scheduleAlert( market, alertType, alertId ) {
         targetTime.setDate( targetTime.getDate() + 1 );
     }
 
-    const timeUntilAlert = targetTime.getTime() - now.getTime();
-
-    const timeoutId = setTimeout( () => {
-        const actionText = alertType === 'open' ? 'abrió' : 'cerró';
-        const title = `${market.flag} ${market.name} - ${market.country}`;
-        const body = `El mercado ${market.market} ${actionText} (${formatHour( targetHour )})`;
-
-        sendNotification( title, body );
-
-        // Reprogramar para el siguiente día hábil
-        marketAlerts.delete( alertId );
-        scheduleAlert( market, alertType, alertId );
-    }, timeUntilAlert );
-
+    // Almacenar en memoria para la sesión actual
     marketAlerts.set( alertId, {
-        timeoutId: timeoutId,
         market: market,
         alertType: alertType,
-        targetTime: targetTime
+        targetTime: targetTime,
+        persistent: true
     } );
+
+    return targetTime;
+}
+
+function createAlertsPanel() {
+    const alertsPanel = document.createElement( 'div' );
+    alertsPanel.id = 'alerts-panel';
+    alertsPanel.className = 'fixed bottom-4 left-4 bg-gray-800 bg-opacity-90 backdrop-blur-sm text-white p-4 rounded-lg shadow-lg z-40 max-w-sm hidden';
+    alertsPanel.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-lg">
+                <i class="fas fa-bell mr-2"></i>Alertas Activas
+            </h3>
+            <button onclick="toggleAlertsPanel()" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="alerts-list" class="space-y-2 max-h-60 overflow-y-auto">
+            <!-- Las alertas se cargarán aquí -->
+        </div>
+        <div class="mt-3 pt-2 border-t border-gray-600 text-xs text-gray-300">
+            Las alertas persisten aunque cierres el navegador
+        </div>
+    `;
+
+    document.body.appendChild( alertsPanel );
+
+    // Botón flotante para mostrar/ocultar panel
+    const toggleButton = document.createElement( 'button' );
+    toggleButton.id = 'alerts-toggle';
+    toggleButton.className = 'fixed bottom-4 left-4 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg z-50 transition-all duration-300';
+    toggleButton.innerHTML = `
+        <i class="fas fa-bell"></i>
+        <span id="alerts-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+    `;
+    toggleButton.onclick = toggleAlertsPanel;
+
+    document.body.appendChild( toggleButton );
+}
+
+// Alternar panel de alertas
+function toggleAlertsPanel() {
+    const panel = document.getElementById( 'alerts-panel' );
+    const isVisible = !panel.classList.contains( 'hidden' );
+
+    if ( isVisible ) {
+        panel.classList.add( 'hidden' );
+    } else {
+        panel.classList.remove( 'hidden' );
+        updateAlertsPanel();
+    }
+}
+
+// Actualizar panel de alertas
+function updateAlertsPanel() {
+    const alertsList = document.getElementById( 'alerts-list' );
+    const alertsCount = document.getElementById( 'alerts-count' );
+
+    if ( !alertsList || !alertsCount ) return;
+
+    const activeAlerts = Array.from( marketAlerts.entries() );
+    alertsCount.textContent = activeAlerts.length;
+
+    if ( activeAlerts.length === 0 ) {
+        alertsList.innerHTML = `
+            <div class="text-center text-gray-400 py-4">
+                <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                <p class="text-sm">No tienes alertas activas</p>
+            </div>
+        `;
+        return;
+    }
+
+    const alertsHTML = activeAlerts.map( ( [ alertId, alert ] ) => {
+        const timeRemaining = getTimeRemaining( alert.targetTime );
+        const actionText = alert.alertType === 'open' ? 'Apertura' : 'Cierre';
+
+        return `
+            <div class="bg-gray-700 rounded p-3 text-sm">
+                <div class="flex justify-between items-start mb-1">
+                    <div class="font-medium">${alert.market.flag} ${alert.market.name}</div>
+                    <button onclick="cancelAlertFromPanel('${alertId}')" class="text-red-400 hover:text-red-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="text-gray-300 text-xs">
+                    ${actionText} • ${timeRemaining}
+                </div>
+            </div>
+        `;
+    } ).join( '' );
+
+    alertsList.innerHTML = alertsHTML;
+}
+
+// Obtener tiempo restante para una alerta
+function getTimeRemaining( targetTime ) {
+    const now = new Date();
+    const diff = targetTime.getTime() - now.getTime();
+
+    if ( diff <= 0 ) return 'Expirada';
+
+    const days = Math.floor( diff / ( 1000 * 60 * 60 * 24 ) );
+    const hours = Math.floor( ( diff % ( 1000 * 60 * 60 * 24 ) ) / ( 1000 * 60 * 60 ) );
+    const minutes = Math.floor( ( diff % ( 1000 * 60 * 60 ) ) / ( 1000 * 60 ) );
+
+    if ( days > 0 ) return `En ${days}d ${hours}h`;
+    if ( hours > 0 ) return `En ${hours}h ${minutes}m`;
+    return `En ${minutes}m`;
+}
+
+// Cancelar alerta desde el panel
+async function cancelAlertFromPanel( alertId ) {
+    marketAlerts.delete( alertId );
+    await cancelPersistentAlert( alertId );
+    updateAlertsPanel();
+    renderMainMarkets();
+    renderUserMarkets();
+    showAlertFeedback( 'Alerta cancelada', 'warning' );
 }
 
 // Event Listeners
-document.addEventListener( 'DOMContentLoaded', function () {
-    // Cargar datos y renderizar
+document.addEventListener( 'DOMContentLoaded', async function () {
+    // Inicializar Service Worker primero
+    await initServiceWorker();
+
+    // Crear panel de alertas
+    createAlertsPanel();
+
+    // Cargar datos y renderizar (tu código existente)
     loadCitiesData();
     renderMainMarkets();
 
@@ -676,7 +949,6 @@ document.addEventListener( 'DOMContentLoaded', function () {
         }
     } );
 
-    // Event listener para el botón agregar
     addButton.addEventListener( 'click', function () {
         const searchTerm = searchInput.value.trim();
         if ( !searchTerm ) {
@@ -702,7 +974,11 @@ document.addEventListener( 'DOMContentLoaded', function () {
         }
     } );
 
+
     // Actualizar tiempos cada segundo
     updateAllTimes();
     setInterval( updateAllTimes, 1000 );
+
+    // Actualizar panel de alertas cada minuto
+    setInterval( updateAlertsPanel, 60000 );
 } );
