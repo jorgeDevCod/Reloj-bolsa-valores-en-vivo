@@ -1,0 +1,554 @@
+{
+  "cities": [
+    {
+      "name": "Toronto",
+      "country": "Canadá",
+      "timezone": "America/Toronto",
+      "market": "TSX",
+      "flag": "🇨🇦",
+      "openHour": 9.5,
+      "closeHour": 16,
+      "region": "America"
+    },
+    {
+      "name": "Vancouver",
+      "country": "Canadá",
+      "timezone": "America/Vancouver",
+      "market": "TSXV",
+      "flag": "🇨🇦",
+      "openHour": 7,
+      "closeHour": 13,
+      "region": "America"
+    },
+    {
+      "name": "São Paulo",
+      "country": "Brasil",
+      "timezone": "America/Sao_Paulo",
+      "market": "B3",
+      "flag": "🇧🇷",
+      "openHour": 10,
+      "closeHour": 17,
+      "region": "America"
+    },
+    {
+      "name": "Buenos Aires",
+      "country": "Argentina",
+      "timezone": "America/Argentina/Buenos_Aires",
+      "market": "BCBA",
+      "flag": "🇦🇷",
+      "openHour": 11,
+      "closeHour": 17,
+      "region": "America"
+    },
+    {
+      "name": "Santiago",
+      "country": "Chile",
+      "timezone": "America/Santiago",
+      "market": "BCS",
+      "flag": "🇨🇱",
+      "openHour": 9.5,
+      "closeHour": 16,
+      "region": "America"
+    },
+    {
+      "name": "Bogotá",
+      "country": "Colombia",
+      "timezone": "America/Bogota",
+      "market": "BVC",
+      "flag": "🇨🇴",
+      "openHour": 9.5,
+      "closeHour": 15.5,
+      "region": "America"
+    },
+    {
+      "name": "Ciudad de México",
+      "country": "México",
+      "timezone": "America/Mexico_City",
+      "market": "BMV",
+      "flag": "🇲🇽",
+      "openHour": 8.5,
+      "closeHour": 15,
+      "region": "America"
+    },
+    {
+      "name": "Chicago",
+      "country": "Estados Unidos",
+      "timezone": "America/Chicago",
+      "market": "CME",
+      "flag": "🇺🇸",
+      "openHour": 8.5,
+      "closeHour": 15,
+      "region": "America"
+    },
+    {
+      "name": "Los Angeles",
+      "country": "Estados Unidos",
+      "timezone": "America/Los_Angeles",
+      "market": "NASDAQ",
+      "flag": "🇺🇸",
+      "openHour": 6.5,
+      "closeHour": 13,
+      "region": "America"
+    },
+    {
+      "name": "Caracas",
+      "country": "Venezuela",
+      "timezone": "America/Caracas",
+      "market": "BVC",
+      "flag": "🇻🇪",
+      "openHour": 9.5,
+      "closeHour": 15,
+      "region": "America"
+    },
+    {
+      "name": "Quito",
+      "country": "Ecuador",
+      "timezone": "America/Guayaquil",
+      "market": "BVQ",
+      "flag": "🇪🇨",
+      "openHour": 9,
+      "closeHour": 16.5,
+      "region": "America"
+    },
+    {
+      "name": "La Paz",
+      "country": "Bolivia",
+      "timezone": "America/La_Paz",
+      "market": "BBV",
+      "flag": "🇧🇴",
+      "openHour": 10.5,
+      "closeHour": 12.5,
+      "region": "America"
+    },
+    {
+      "name": "Montevideo",
+      "country": "Uruguay",
+      "timezone": "America/Montevideo",
+      "market": "BVM",
+      "flag": "🇺🇾",
+      "openHour": 11,
+      "closeHour": 17,
+      "region": "America"
+    },
+    {
+      "name": "Asunción",
+      "country": "Paraguay",
+      "timezone": "America/Asuncion",
+      "market": "BVPASA",
+      "flag": "🇵🇾",
+      "openHour": 9,
+      "closeHour": 15,
+      "region": "America"
+    },
+    {
+      "name": "Mumbai",
+      "country": "India",
+      "timezone": "Asia/Kolkata",
+      "market": "BSE",
+      "flag": "🇮🇳",
+      "openHour": 9.25,
+      "closeHour": 15.5,
+      "region": "Asia"
+    },
+    {
+      "name": "Seúl",
+      "country": "Corea del Sur",
+      "timezone": "Asia/Seoul",
+      "market": "KRX",
+      "flag": "🇰🇷",
+      "openHour": 9,
+      "closeHour": 15.5,
+      "region": "Asia"
+    },
+    {
+      "name": "Shanghái",
+      "country": "China",
+      "timezone": "Asia/Shanghai",
+      "market": "SSE",
+      "flag": "🇨🇳",
+      "openHour": 9.5,
+      "closeHour": 15,
+      "region": "Asia"
+    },
+    {
+      "name": "Beijing",
+      "country": "China",
+      "timezone": "Asia/Shanghai",
+      "market": "SSE",
+      "flag": "🇨🇳",
+      "openHour": 9.5,
+      "closeHour": 15,
+      "region": "Asia"
+    },
+    {
+      "name": "Singapur",
+      "country": "Singapur",
+      "timezone": "Asia/Singapore",
+      "market": "SGX",
+      "flag": "🇸🇬",
+      "openHour": 9,
+      "closeHour": 17,
+      "region": "Asia"
+    },
+    {
+      "name": "Bangkok",
+      "country": "Tailandia",
+      "timezone": "Asia/Bangkok",
+      "market": "SET",
+      "flag": "🇹🇭",
+      "openHour": 10,
+      "closeHour": 16.5,
+      "region": "Asia"
+    },
+    {
+      "name": "Jakarta",
+      "country": "Indonesia",
+      "timezone": "Asia/Jakarta",
+      "market": "IDX",
+      "flag": "🇮🇩",
+      "openHour": 9,
+      "closeHour": 16,
+      "region": "Asia"
+    },
+    {
+      "name": "Manila",
+      "country": "Filipinas",
+      "timezone": "Asia/Manila",
+      "market": "PSE",
+      "flag": "🇵🇭",
+      "openHour": 9.5,
+      "closeHour": 15.5,
+      "region": "Asia"
+    },
+    {
+      "name": "Kuala Lumpur",
+      "country": "Malasia",
+      "timezone": "Asia/Kuala_Lumpur",
+      "market": "BURSA",
+      "flag": "🇲🇾",
+      "openHour": 9,
+      "closeHour": 17,
+      "region": "Asia"
+    },
+    {
+      "name": "Taipei",
+      "country": "Taiwán",
+      "timezone": "Asia/Taipei",
+      "market": "TWSE",
+      "flag": "🇹🇼",
+      "openHour": 9,
+      "closeHour": 13.5,
+      "region": "Asia"
+    },
+    {
+      "name": "Tel Aviv",
+      "country": "Israel",
+      "timezone": "Asia/Jerusalem",
+      "market": "TASE",
+      "flag": "🇮🇱",
+      "openHour": 10,
+      "closeHour": 17.25,
+      "region": "Asia"
+    },
+    {
+      "name": "Dubai",
+      "country": "Emiratos Árabes Unidos",
+      "timezone": "Asia/Dubai",
+      "market": "DFM",
+      "flag": "🇦🇪",
+      "openHour": 10,
+      "closeHour": 14,
+      "region": "Asia"
+    },
+    {
+      "name": "Ho Chi Minh",
+      "country": "Vietnam",
+      "timezone": "Asia/Ho_Chi_Minh",
+      "market": "HOSE",
+      "flag": "🇻🇳",
+      "openHour": 9,
+      "closeHour": 15,
+      "region": "Asia"
+    },
+    {
+      "name": "Karachi",
+      "country": "Pakistán",
+      "timezone": "Asia/Karachi",
+      "market": "PSX",
+      "flag": "🇵🇰",
+      "openHour": 9.5,
+      "closeHour": 15.5,
+      "region": "Asia"
+    },
+    {
+      "name": "Dhaka",
+      "country": "Bangladesh",
+      "timezone": "Asia/Dhaka",
+      "market": "DSE",
+      "flag": "🇧🇩",
+      "openHour": 10,
+      "closeHour": 14.5,
+      "region": "Asia"
+    },
+    {
+      "name": "Colombo",
+      "country": "Sri Lanka",
+      "timezone": "Asia/Colombo",
+      "market": "CSE",
+      "flag": "🇱🇰",
+      "openHour": 9.5,
+      "closeHour": 14.5,
+      "region": "Asia"
+    },
+    {
+      "name": "Zurich",
+      "country": "Suiza",
+      "timezone": "Europe/Zurich",
+      "market": "SIX",
+      "flag": "🇨🇭",
+      "openHour": 9,
+      "closeHour": 17.5,
+      "region": "Europe"
+    },
+    {
+      "name": "París",
+      "country": "Francia",
+      "timezone": "Europe/Paris",
+      "market": "Euronext",
+      "flag": "🇫🇷",
+      "openHour": 9,
+      "closeHour": 17.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Milán",
+      "country": "Italia",
+      "timezone": "Europe/Rome",
+      "market": "Borsa Italiana",
+      "flag": "🇮🇹",
+      "openHour": 9,
+      "closeHour": 17.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Madrid",
+      "country": "España",
+      "timezone": "Europe/Madrid",
+      "market": "BME",
+      "flag": "🇪🇸",
+      "openHour": 9,
+      "closeHour": 17.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Ámsterdam",
+      "country": "Países Bajos",
+      "timezone": "Europe/Amsterdam",
+      "market": "Euronext",
+      "flag": "🇳🇱",
+      "openHour": 9,
+      "closeHour": 17.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Estocolmo",
+      "country": "Suecia",
+      "timezone": "Europe/Stockholm",
+      "market": "Nasdaq Stockholm",
+      "flag": "🇸🇪",
+      "openHour": 9,
+      "closeHour": 17.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Oslo",
+      "country": "Noruega",
+      "timezone": "Europe/Oslo",
+      "market": "Oslo Børs",
+      "flag": "🇳🇴",
+      "openHour": 9,
+      "closeHour": 16.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Copenhague",
+      "country": "Dinamarca",
+      "timezone": "Europe/Copenhagen",
+      "market": "Nasdaq Copenhagen",
+      "flag": "🇩🇰",
+      "openHour": 9,
+      "closeHour": 17,
+      "region": "Europe"
+    },
+    {
+      "name": "Helsinki",
+      "country": "Finlandia",
+      "timezone": "Europe/Helsinki",
+      "market": "Nasdaq Helsinki",
+      "flag": "🇫🇮",
+      "openHour": 10,
+      "closeHour": 18.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Varsovia",
+      "country": "Polonia",
+      "timezone": "Europe/Warsaw",
+      "market": "GPW",
+      "flag": "🇵🇱",
+      "openHour": 9,
+      "closeHour": 17.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Praga",
+      "country": "República Checa",
+      "timezone": "Europe/Prague",
+      "market": "PSE",
+      "flag": "🇨🇿",
+      "openHour": 9,
+      "closeHour": 17.25,
+      "region": "Europe"
+    },
+    {
+      "name": "Viena",
+      "country": "Austria",
+      "timezone": "Europe/Vienna",
+      "market": "Wiener Börse",
+      "flag": "🇦🇹",
+      "openHour": 9,
+      "closeHour": 17.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Bruselas",
+      "country": "Bélgica",
+      "timezone": "Europe/Brussels",
+      "market": "Euronext Brussels",
+      "flag": "🇧🇪",
+      "openHour": 9,
+      "closeHour": 17.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Lisboa",
+      "country": "Portugal",
+      "timezone": "Europe/Lisbon",
+      "market": "Euronext Lisbon",
+      "flag": "🇵🇹",
+      "openHour": 8,
+      "closeHour": 16.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Atenas",
+      "country": "Grecia",
+      "timezone": "Europe/Athens",
+      "market": "ATHEX",
+      "flag": "🇬🇷",
+      "openHour": 10,
+      "closeHour": 17.2,
+      "region": "Europe"
+    },
+    {
+      "name": "Estambul",
+      "country": "Turquía",
+      "timezone": "Europe/Istanbul",
+      "market": "Borsa Istanbul",
+      "flag": "🇹🇷",
+      "openHour": 10,
+      "closeHour": 18,
+      "region": "Europe"
+    },
+    {
+      "name": "Moscú",
+      "country": "Rusia",
+      "timezone": "Europe/Moscow",
+      "market": "MOEX",
+      "flag": "🇷🇺",
+      "openHour": 10,
+      "closeHour": 18.5,
+      "region": "Europe"
+    },
+    {
+      "name": "Johannesburgo",
+      "country": "Sudáfrica",
+      "timezone": "Africa/Johannesburg",
+      "market": "JSE",
+      "flag": "🇿🇦",
+      "openHour": 9,
+      "closeHour": 17,
+      "region": "Africa"
+    },
+    {
+      "name": "El Cairo",
+      "country": "Egipto",
+      "timezone": "Africa/Cairo",
+      "market": "EGX",
+      "flag": "🇪🇬",
+      "openHour": 10,
+      "closeHour": 14.5,
+      "region": "Africa"
+    },
+    {
+      "name": "Lagos",
+      "country": "Nigeria",
+      "timezone": "Africa/Lagos",
+      "market": "NSE",
+      "flag": "🇳🇬",
+      "openHour": 10,
+      "closeHour": 14.5,
+      "region": "Africa"
+    },
+    {
+      "name": "Nairobi",
+      "country": "Kenia",
+      "timezone": "Africa/Nairobi",
+      "market": "NSE",
+      "flag": "🇰🇪",
+      "openHour": 9,
+      "closeHour": 15,
+      "region": "Africa"
+    },
+    {
+      "name": "Casablanca",
+      "country": "Marruecos",
+      "timezone": "Africa/Casablanca",
+      "market": "Casablanca Stock Exchange",
+      "flag": "🇲🇦",
+      "openHour": 9.5,
+      "closeHour": 15.5,
+      "region": "Africa"
+    },
+    {
+      "name": "Auckland",
+      "country": "Nueva Zelanda",
+      "timezone": "Pacific/Auckland",
+      "market": "NZX",
+      "flag": "🇳🇿",
+      "openHour": 10,
+      "closeHour": 16.5,
+      "region": "Oceania"
+    },
+    {
+      "name": "Melbourne",
+      "country": "Australia",
+      "timezone": "Australia/Melbourne",
+      "market": "ASX",
+      "flag": "🇦🇺",
+      "openHour": 10,
+      "closeHour": 16,
+      "region": "Oceania"
+    },
+    {
+      "name": "Perth",
+      "country": "Australia",
+      "timezone": "Australia/Perth",
+      "market": "ASX",
+      "flag": "🇦🇺",
+      "openHour": 10,
+      "closeHour": 16,
+      "region": "Oceania"
+    }
+  ]
+}

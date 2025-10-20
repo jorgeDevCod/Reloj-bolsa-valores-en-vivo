@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reloj Mundial - Mercados Financieros</title>
+    <link rel="icon" href="./favicon-v2.png" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6366f1">
+
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+        body {
+            font-family: "Inter", sans-serif;
+        }
+
+        /* Animaciones */
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(239, 68, 68, 0.7);
+            }
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 40%, #602091cd 75%, #4facfe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .clock-card {
+            background: linear-gradient(145deg, #574fa7 0%, #4b6da8 50%, #965be8 100%);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .clock-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .clock-card:hover::before {
+            left: 100%;
+        }
+
+        .clock-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        .peru-card {
+            background: linear-gradient(145deg, #af4040 0%, #ee5a24 30%, #d15c4f 70%, #6e2323 100%);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        .market-open {
+            border-left: 6px solid #00d4aa;
+            box-shadow: 0 0 15px rgba(0, 212, 170, 0.3);
+        }
+
+        .market-closed {
+            border-left: 6px solid #ff6b6b;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .market-pre {
+            border-left: 6px solid #feca57;
+            box-shadow: 0 0 15px rgba(254, 202, 87, 0.3);
+        }
+
+        .digital-font {
+            font-family: "SF Mono", "Monaco", "Cascadia Code", "Roboto Mono", monospace;
+            font-weight: 700;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .status-open {
+            background: linear-gradient(135deg, #00d4aa, #1e8ed8);
+            box-shadow: 0 4px 15px rgba(0, 212, 170, 0.5);
+            color: white;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-closed {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5);
+            color: white;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-pre {
+            background: linear-gradient(135deg, #feca57, #ff9ff3);
+            box-shadow: 0 4px 15px rgba(254, 202, 87, 0.5);
+            color: #1a202c;
+            font-weight: 800;
+        }
+
+        .alert-btn {
+            font-size: 13px;
+            min-width: 95px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+            padding: 8px 12px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: rgba(55, 65, 81, 0.8);
+            color: #d1d5db;
+        }
+
+        .alert-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            background: rgba(75, 85, 99, 0.9);
+            color: #f3f4f6;
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .alert-btn.active-open {
+            background: linear-gradient(135deg, #00d4aa, #01a3a4) !important;
+            color: white !important;
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.7);
+            border-color: rgba(0, 212, 170, 0.9) !important;
+        }
+
+        .alert-btn.active-close {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
+            color: white !important;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.7);
+            border-color: rgba(255, 107, 107, 0.9) !important;
+        }
+
+        .search-container {
+            backdrop-filter: blur(15px);
+            background: linear-gradient(135deg, rgba(98, 106, 217, 0.136), rgba(151, 58, 194, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-btn {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-btn:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .clock-card:hover {
+                transform: translateY(-4px) scale(1.01);
+            }
+
+            .alert-btn {
+                font-size: 12px;
+                min-width: 90px;
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+
+<body class="gradient-bg overflow-x-hidden">
+    <!-- Partículas de fondo -->
+    <div class="fixed inset-0 pointer-events-none z-0" id="particles">
+        <div class="particle" style="left: 10%; animation-delay: 0s; animation-duration: 6s;"></div>
+        <div class="particle" style="left: 20%; animation-delay: 2s; animation-duration: 8s;"></div>
+        <div class="particle" style="left: 30%; animation-delay: 4s; animation-duration: 7s;"></div>
+        <div class="particle" style="left: 40%; animation-delay: 1s; animation-duration: 9s;"></div>
+        <div class="particle" style="left: 50%; animation-delay: 3s; animation-duration: 6s;"></div>
+        <div class="particle" style="left: 60%; animation-delay: 2s; animation-duration: 8s;"></div>
+        <div class="particle" style="left: 70%; animation-delay: 5s; animation-duration: 7s;"></div>
+        <div class="particle" style="left: 80%; animation-delay: 1s; animation-duration: 9s;"></div>
+        <div class="particle" style="left: 90%; animation-delay: 4s; animation-duration: 6s;"></div>
+    </div>
+
+    <div class="container mx-auto px-6 py-8 relative z-10">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4 text-blue-100">
+                <i class="fas fa-globe-americas mr-4 text-white" aria-hidden="true"></i>
+                Mercados Mundiales
+            </h1>
+            <p class="text-xl text-blue-100 font-medium">Horarios en tiempo real de las principales bolsas de valores</p>
+            <div class="mt-4 w-32 h-1 bg-gradient-to-r from-purple-400 to-pink-400 mx-auto rounded-full" aria-hidden="true"></div>
+        </header>
+
+        <!-- Buscador de países -->
+        <section class="search-container rounded-2xl p-6 mb-8" role="search" aria-label="Búsqueda de mercados">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <label for="country-search" class="sr-only">Buscar país o ciudad</label>
+                    <input type="text" id="country-search" placeholder="Buscar país o ciudad (ej: Tokyo, London, New York...)" class="w-full px-4 py-3 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-800 font-medium bg-white/95 backdrop-blur-10" aria-describedby="search-help">
+                    <span id="search-help" class="sr-only">Escribe el nombre de una ciudad o país para buscar mercados financieros</span>
+                </div>
+                <button id="add-country-btn" class="px-6 py-3 text-white font-semibold rounded-lg transition-all duration-300 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 hover:shadow-lg focus:ring-2 focus:ring-teal-400 focus:outline-none" aria-label="Agregar país seleccionado">
+                    <i class="fas fa-plus mr-2" aria-hidden="true"></i>Agregar País
+                </button>
+            </div>
+            <div id="search-suggestions" class="mt-4 grid gap-2" role="region" aria-live="polite" aria-label="Sugerencias de búsqueda"></div>
+        </section>
+
+        <!-- Perú - Primera fila destacada -->
+        <section class="mb-8" aria-label="Mercado de Perú">
+            <div class="clock-card peru-card rounded-2xl p-6 text-white shadow-2xl border-2 border-white/20">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                    <!-- Info del mercado -->
+                    <div class="flex-1">
+                        <h2 class="text-2xl font-bold mb-2">
+                            <i class="fas fa-flag mr-2" aria-hidden="true"></i>PERÚ - LIMA
+                        </h2>
+                        <p class="text-white mb-3">Bolsa de Valores de Lima (BVL)</p>
+                        <div class="text-sm text-white space-y-1">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-door-open w-4" aria-hidden="true"></i>
+                                <span>Apertura: 09:00</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-door-closed w-4" aria-hidden="true"></i>
+                                <span>Cierre: 15:30</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tiempo -->
+                    <div class="text-center lg:text-right min-w-[140px]">
+                        <div class="digital-font text-4xl md:text-5xl font-bold mb-2" id="peru-time" aria-label="Hora actual en Perú">
+                            --:--:--
+                        </div>
+                        <div class="text-lg mb-3" id="peru-date" aria-label="Fecha actual en Perú">
+                            -- de ---- de ----
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado y alertas -->
+                <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-white/20">
+                    <span class="px-4 py-2 rounded-full text-sm font-semibold min-w-[110px] text-center" id="peru-status" role="status" aria-live="polite">
+                        Calculando...
+                    </span>
+
+                    <div class="flex gap-2" role="group" aria-label="Alertas del mercado peruano">
+                        <button onclick="toggleAlert('America/Lima-PERÚ', 'open')" class="alert-btn rounded focus:ring-2 focus:ring-white/50 focus:outline-none" id="peru-open-alert" aria-label="Activar alerta de apertura del mercado peruano" aria-pressed="false">
+                            <i class="fas fa-bell-slash" aria-hidden="true"></i>
+                            <span class="ml-1">Apertura</span>
+                        </button>
+                        <button onclick="toggleAlert('America/Lima-PERÚ', 'close')" class="alert-btn rounded focus:ring-2 focus:ring-white/50 focus:outline-none" id="peru-close-alert" aria-label="Activar alerta de cierre del mercado peruano" aria-pressed="false">
+                            <i class="fas fa-bell-slash" aria-hidden="true"></i>
+                            <span class="ml-1">Cierre</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mercados principales -->
+        <section aria-label="Mercados principales mundiales">
+            <h2 class="sr-only">Mercados Principales</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="main-markets" role="list">
+                <!-- Los mercados se cargarán aquí dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Mercados agregados por el usuario -->
+        <section aria-label="Mercados agregados por el usuario">
+            <h2 class="sr-only">Tus Mercados Personalizados</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="user-markets" role="list">
+                <!-- Los mercados del usuario se cargarán aquí -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="relative z-10 mt-12 bg-gradient-to-br from-slate-700/10 via-slate-600/5 to-slate-700/10 backdrop-blur-xl border-t border-blue-300/20">
+        <div class="container mx-auto px-6 py-8">
+            <div class="w-full h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent mb-8 rounded-full" aria-hidden="true"></div>
+
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="text-center md:text-left">
+                    <h3 class="text-2xl font-bold text-white mb-2">
+                        <i class="fas fa-user-astronaut mr-2 text-purple-300" aria-hidden="true"></i>
+                        Creador<br>
+                        <span>Jorge Germán P. Mesta</span>
+                    </h3>
+                    <p class="text-blue-100 font-medium mb-2">Developer Full Stack y SEO</p>
+                    <h4 class="text-xl font-bold text-white mb-3 flex flex-col gap-1">
+                        Contacto<br>
+                        <a href="https://linkedin.com/in/jgmesta" class="hover:text-purple-300 transition-colors" target="_blank" rel="noopener noreferrer">linkedin.com/in/jgmesta</a>
+                        <a href="mailto:jorge26_pm@outlook.com" class="hover:text-purple-300 transition-colors">jorge26_pm@outlook.com</a>
+                    </h4>
+                    <p class="text-blue-200 text-sm">© 2025 - Creado con pasión por los mercados financieros</p>
+                </div>
+
+                <div class="text-center md:text-right">
+                    <h4 class="text-lg font-semibold text-purple-200 mb-3">
+                        <i class="fas fa-chart-line mr-2" aria-hidden="true"></i>
+                        Tu ventana al mundo financiero
+                    </h4>
+                    <p class="text-blue-100 text-sm leading-relaxed mb-3">
+                        Mantente siempre conectado con los mercados globales. Monitorea horarios de apertura y cierre,
+                        recibe alertas personalizadas y toma decisiones informadas las 24 horas del día.
+                    </p>
+                    <div class="flex justify-center md:justify-end gap-4 text-xs text-purple-200">
+                        <span><i class="fas fa-globe mr-1" aria-hidden="true"></i>Tiempo Real</span>
+                        <span><i class="fas fa-bell mr-1" aria-hidden="true"></i>Alertas Smart</span>
+                        <span><i class="fas fa-mobile-alt mr-1" aria-hidden="true"></i>Responsive</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-purple-400/30">
+                <div class="text-center">
+                    <p class="text-purple-200 text-sm font-medium italic">
+                        "El tiempo es el recurso más valioso en los mercados financieros"
+                    </p>
+                    <div class="mt-3 flex justify-center items-center gap-2 text-xs text-blue-200">
+                        <i class="fas fa-heart text-red-400" aria-hidden="true"></i>
+                        <span>Desarrollado para traders e inversores apasionados</span>
+                        <i class="fas fa-heart text-red-400" aria-hidden="true"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Botón flotante de alertas -->
+    <button id="alerts-toggle" onclick="toggleAlertsPanel()" class="fixed bottom-4 left-4 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg z-50 transition-all duration-300 focus:ring-2 focus:ring-purple-400 focus:outline-none" aria-label="Ver alertas activas" aria-expanded="false" aria-controls="alerts-panel">
+        <i class="fas fa-bell" aria-hidden="true"></i>
+        <span id="alerts-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 items-center justify-center hidden" aria-label="Número de alertas activas">0</span>
+    </button>
+
+    <!-- Panel de alertas -->
+    <div id="alerts-panel" class="fixed bottom-4 left-4 bg-gray-800/90 backdrop-blur-sm text-white p-4 rounded-lg shadow-lg z-40 max-w-sm hidden" role="dialog" aria-labelledby="alerts-panel-title" aria-modal="false">
+        <div class="flex justify-between items-center mb-3">
+            <h3 id="alerts-panel-title" class="font-bold text-lg">
+                <i class="fas fa-bell mr-2" aria-hidden="true"></i>Alertas Activas
+            </h3>
+            <button onclick="toggleAlertsPanel()" class="text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50 rounded" aria-label="Cerrar panel de alertas">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div id="alerts-list" class="space-y-2 max-h-60 overflow-y-auto" role="list">
+            <!-- Las alertas se cargarán aquí -->
+        </div>
+        <div class="mt-3 pt-2 border-t border-gray-600 text-xs text-gray-300">
+            Las alertas persisten aunque cierres el navegador
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
